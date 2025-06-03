@@ -455,6 +455,104 @@
         .tab-content.active {
             display: block;
         }
+
+        /* Template Categories Sidebar */
+        .template-categories-sidebar {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem; /* Space between sidebar and template grid on smaller screens */
+        }
+
+        .template-categories-sidebar h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .category-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .category-list button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            padding: 8px 10px;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 6px;
+        }
+
+        .category-list button:hover,
+        .category-list button.active {
+            background: var(--secondary);
+            color: var(--text);
+            transform: translateX(5px);
+        }
+
+        /* Adjustments for the template tab content layout */
+        #templates.tab-content.active {
+            display: flex; /* Use flexbox for side-by-side layout */
+            gap: 2rem; /* Space between sidebar and main template content */
+        }
+
+        .template-main-content {
+            flex-grow: 1; /* Allow main content to take remaining space */
+        }
+
+        /* Responsive adjustments for templates section */
+        @media (max-width: 768px) {
+            #templates.tab-content.active {
+                flex-direction: column; /* Stack categories and templates vertically */
+            }
+        }
+
+        /* Mobile menu specific styles (from previous code) */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--secondary);
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s;
+            }
+            
+            .nav-menu.mobile-active {
+                display: flex;
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -470,6 +568,9 @@
                 <li><a href="#" class="nav-link">Saved</a></li>
                 <li><a href="#" class="nav-link">Help</a></li>
             </ul>
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
         </nav>
     </header>
 
@@ -548,8 +649,14 @@
                 </div>
 
                 <div id="templates" class="tab-content">
-                    <div class="template-grid" id="templateGrid">
-                        <!-- Templates will be loaded here -->
+                    <div class="template-categories-sidebar">
+                        <h3>Categories</h3>
+                        <ul id="templateCategoryList" class="category-list">
+                            </ul>
+                    </div>
+                    <div class="template-main-content">
+                        <div class="template-grid" id="templateGrid">
+                            </div>
                     </div>
                 </div>
 
@@ -562,6 +669,15 @@
                     </button>
                     <button class="btn btn-secondary" onclick="saveQuery()">
                         <i class="fas fa-save"></i> Save Query
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyQuery()">
+                        <i class="fas fa-copy"></i> Copy Query
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportQueries()">
+                        <i class="fas fa-download"></i> Export Saved
+                    </button>
+                    <button class="btn btn-secondary" onclick="importQueries()">
+                        <i class="fas fa-upload"></i> Import Saved
                     </button>
                 </div>
             </div>
@@ -581,12 +697,14 @@
                     <button class="btn btn-secondary" onclick="loadTemplate('error-pages')">
                         <i class="fas fa-exclamation-triangle"></i> Error Pages
                     </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('aws-exposure')">
+                        <i class="fab fa-aws"></i> AWS Exposure
+                    </button>
                 </div>
 
                 <h3 style="margin-top: 2rem;">Saved Queries</h3>
                 <div class="saved-queries" id="savedQueries">
-                    <!-- Saved queries will appear here -->
-                </div>
+                    </div>
             </div>
         </div>
 
@@ -600,25 +718,25 @@
             </div>
 
             <div class="search-engines">
-                <a href="#" class="engine-card" id="googleLink">
+                <a href="#" class="engine-card" id="googleLink" target="_blank">
                     <div class="engine-icon">
                         <i class="fab fa-google"></i>
                     </div>
                     <div>Google Search</div>
                 </a>
-                <a href="#" class="engine-card" id="bingLink">
+                <a href="#" class="engine-card" id="bingLink" target="_blank">
                     <div class="engine-icon">
                         <i class="fab fa-microsoft"></i>
                     </div>
                     <div>Bing Search</div>
                 </a>
-                <a href="#" class="engine-card" id="yandexLink">
+                <a href="#" class="engine-card" id="yandexLink" target="_blank">
                     <div class="engine-icon">
                         <i class="fas fa-search"></i>
                     </div>
                     <div>Yandex Search</div>
                 </a>
-                <a href="#" class="engine-card" id="duckduckgoLink">
+                <a href="#" class="engine-card" id="duckduckgoLink" target="_blank">
                     <div class="engine-icon">
                         <i class="fas fa-search"></i>
                     </div>
@@ -675,6 +793,7 @@
             'sensitive-files': {
                 title: 'Sensitive Files',
                 description: 'Find exposed sensitive files like configs, backups, logs',
+                category: 'General',
                 queries: [
                     'filetype:sql "MySQL dump" (pass|password|passwd|pwd)',
                     'filetype:log "password" | "passwd" | "pass"',
@@ -687,6 +806,7 @@
             'login-pages': {
                 title: 'Login Pages & Admin Panels',
                 description: 'Discover admin panels and login interfaces',
+                category: 'Web Applications',
                 queries: [
                     'inurl:admin intitle:admin',
                     'inurl:login intitle:login',
@@ -699,6 +819,7 @@
             'directory-listing': {
                 title: 'Directory Listings',
                 description: 'Find open directory listings with exposed files',
+                category: 'Web Applications',
                 queries: [
                     'intitle:"index of" "parent directory"',
                     'intitle:"index of" "backup" | "log" | "config"',
@@ -711,6 +832,7 @@
             'error-pages': {
                 title: 'Error Pages & Debug Info',
                 description: 'Find error pages that might leak information',
+                category: 'Web Applications',
                 queries: [
                     'intitle:"PHP Parse error" | "PHP Warning" | "PHP Error"',
                     'intitle:"MySQL Error" | "SQL Error" | "Database Error"',
@@ -723,6 +845,7 @@
             'database-exposure': {
                 title: 'Database Exposures',
                 description: 'Find exposed databases and database files',
+                category: 'Data & Databases',
                 queries: [
                     'filetype:sql "INSERT INTO" "password" | "passwd"',
                     'filetype:sql "CREATE TABLE" users',
@@ -735,6 +858,7 @@
             'cloud-storage': {
                 title: 'Cloud Storage Buckets',
                 description: 'Find exposed cloud storage buckets',
+                category: 'Cloud Services',
                 queries: [
                     'site:s3.amazonaws.com intitle:index.of',
                     'site:googleapis.com inurl:storage',
@@ -744,9 +868,23 @@
                     'filetype:xml inurl:"?xml" s3'
                 ]
             },
+            'aws-exposure': { // New Category for AWS
+                title: 'AWS Specific Exposure',
+                description: 'Find exposed AWS resources and configurations',
+                category: 'Cloud Services',
+                queries: [
+                    'site:s3.amazonaws.com intitle:"index of /" "AccessDenied" "ListBucket"',
+                    'inurl:s3.amazonaws.com filetype:log',
+                    'inurl:s3.amazonaws.com filetype:json "credentials"',
+                    'intitle:"index of" "aws_access_key_id" "aws_secret_access_key"',
+                    'inurl:".ebextensions" filetype:conf',
+                    'inurl:".elasticbeanstalk" filetype:config'
+                ]
+            },
             'git-exposure': {
                 title: 'Git Repositories & Source Code',
                 description: 'Find exposed git repositories and source code',
+                category: 'Source Code',
                 queries: [
                     'inurl:".git" intitle:"index of"',
                     'intitle:"index of" ".git/config"',
@@ -759,6 +897,7 @@
             'webcam-exposure': {
                 title: 'Exposed Webcams & IoT',
                 description: 'Find exposed webcams and IoT devices',
+                category: 'IoT & Devices',
                 queries: [
                     'intitle:"Live View" | "Network Camera"',
                     'inurl:view/view.shtml',
@@ -771,6 +910,7 @@
             'vulnerable-apps': {
                 title: 'Vulnerable Applications',
                 description: 'Find potentially vulnerable web applications',
+                category: 'Web Applications',
                 queries: [
                     'intitle:"phpinfo()" "PHP Version"',
                     'intitle:"Test Page for Apache Installation"',
@@ -799,6 +939,9 @@
                 currentQuery = this.value;
                 updateQueryPreview();
             });
+
+            // Initialize help system (tooltips)
+            initializeHelp();
         });
 
         function switchTab(tabName) {
@@ -816,27 +959,89 @@
             document.getElementById(tabName).classList.add('active');
             
             // Add active class to clicked tab
-            event.target.classList.add('active');
+            // event.target might not be the direct tab when called programmatically
+            const clickedTab = document.querySelector(`.tabs .tab[onclick="switchTab('${tabName}')"]`);
+            if (clickedTab) {
+                clickedTab.classList.add('active');
+            }
         }
 
         function loadTemplates() {
             const templateGrid = document.getElementById('templateGrid');
+            const templateCategoryList = document.getElementById('templateCategoryList');
             templateGrid.innerHTML = '';
-            
-            Object.entries(templates).forEach(([key, template]) => {
+            templateCategoryList.innerHTML = '';
+
+            const categories = {};
+            Object.values(templates).forEach(template => {
+                if (!categories[template.category]) {
+                    categories[template.category] = [];
+                }
+                categories[template.category].push(template);
+            });
+
+            // Add "All" category
+            const allCategoryItem = document.createElement('li');
+            const allCategoryButton = document.createElement('button');
+            allCategoryButton.textContent = 'All Categories';
+            allCategoryButton.className = 'active'; // Make "All" active by default
+            allCategoryButton.onclick = () => filterTemplates('All');
+            allCategoryItem.appendChild(allCategoryButton);
+            templateCategoryList.appendChild(allCategoryItem);
+
+            // Add dynamic categories
+            Object.keys(categories).sort().forEach(category => {
+                const categoryItem = document.createElement('li');
+                const categoryButton = document.createElement('button');
+                categoryButton.textContent = category;
+                categoryButton.onclick = () => filterTemplates(category);
+                categoryItem.appendChild(categoryButton);
+                templateCategoryList.appendChild(categoryItem);
+            });
+
+            // Initial load of all templates
+            filterTemplates('All');
+        }
+
+        function filterTemplates(category) {
+            const templateGrid = document.getElementById('templateGrid');
+            templateGrid.innerHTML = '';
+
+            // Deactivate all category buttons
+            document.querySelectorAll('.category-list button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Activate the clicked category button
+            const activeCategoryButton = document.querySelector(`.category-list button[onclick="filterTemplates('${category}')"]`);
+            if (activeCategoryButton) {
+                activeCategoryButton.classList.add('active');
+            }
+
+            const filteredTemplates = Object.entries(templates).filter(([key, template]) => {
+                return category === 'All' || template.category === category;
+            });
+
+            if (filteredTemplates.length === 0) {
+                templateGrid.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No templates found for this category.</p>';
+                return;
+            }
+
+            filteredTemplates.forEach(([key, template]) => {
                 const templateCard = document.createElement('div');
                 templateCard.className = 'template-card';
-                templateCard.onclick = () => loadTemplate(key);
-                
+                templateCard.onclick = () => loadTemplate(key); // Keep this to load specific template query
+
                 templateCard.innerHTML = `
                     <div class="template-title">${template.title}</div>
                     <div class="template-desc">${template.description}</div>
                     <div class="template-query">${template.queries[0]}</div>
                 `;
-                
+
                 templateGrid.appendChild(templateCard);
             });
         }
+
 
         function loadTemplate(templateKey) {
             const template = templates[templateKey];
@@ -844,11 +1049,8 @@
             
             // Switch to manual tab and load first query
             switchTab('manual');
-            document.querySelector('.tab[onclick="switchTab(\'manual\')"]').click();
-            
-            const randomQuery = template.queries[Math.floor(Math.random() * template.queries.length)];
-            document.getElementById('manualQuery').value = randomQuery;
-            currentQuery = randomQuery;
+            document.getElementById('manualQuery').value = template.queries[0]; // Load the first query as an example
+            currentQuery = template.queries[0];
             updateQueryPreview();
         }
 
@@ -961,6 +1163,7 @@
                 
                 // Note: In a real application, you'd save to a backend
                 // For demo purposes, we'll use a simple array
+                localStorage.setItem('dorkQueries', JSON.stringify(savedQueries)); // Save to localStorage
                 loadSavedQueries();
                 
                 alert('Query saved successfully!');
@@ -1003,7 +1206,6 @@
             const saved = savedQueries.find(q => q.id == queryId);
             if (saved) {
                 switchTab('manual');
-                document.querySelector('.tab[onclick="switchTab(\'manual\')"]').click();
                 document.getElementById('manualQuery').value = saved.query;
                 currentQuery = saved.query;
                 updateQueryPreview();
@@ -1013,11 +1215,12 @@
         function deleteSavedQuery(queryId) {
             if (confirm('Are you sure you want to delete this saved query?')) {
                 savedQueries = savedQueries.filter(q => q.id != queryId);
+                localStorage.setItem('dorkQueries', JSON.stringify(savedQueries)); // Update localStorage
                 loadSavedQueries();
             }
         }
 
-        // Advanced query builder functions
+        // Advanced query builder functions (not directly used in current UI but available)
         function addAdvancedOperator(operator) {
             const manualQuery = document.getElementById('manualQuery');
             const currentPos = manualQuery.selectionStart;
@@ -1081,11 +1284,14 @@
                     try {
                         const imported = JSON.parse(e.target.result);
                         if (Array.isArray(imported)) {
-                            savedQueries = [...imported, ...savedQueries];
+                            // Merge and deduplicate, or replace completely
+                            const newSavedQueries = [...imported, ...savedQueries].filter((v, i, a) => a.findIndex(t => (t.query === v.query)) === i);
+                            savedQueries = newSavedQueries.slice(0, 50); // Keep max 50
+                            localStorage.setItem('dorkQueries', JSON.stringify(savedQueries));
                             loadSavedQueries();
                             alert('Queries imported successfully!');
                         } else {
-                            alert('Invalid file format');
+                            alert('Invalid file format: Expected a JSON array.');
                         }
                     } catch (error) {
                         alert('Error reading file: ' + error.message);
@@ -1123,58 +1329,6 @@
             menu.classList.toggle('mobile-active');
         }
 
-        // Add mobile menu styles
-        const mobileStyles = `
-            @media (max-width: 768px) {
-                .nav-menu {
-                    position: absolute;
-                    top: 100%;
-                    left: 0;
-                    right: 0;
-                    background: var(--secondary);
-                    flex-direction: column;
-                    padding: 1rem;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                    transform: translateY(-100%);
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.3s;
-                }
-                
-                .nav-menu.mobile-active {
-                    display: flex;
-                    transform: translateY(0);
-                    opacity: 1;
-                    visibility: visible;
-                }
-                
-                .mobile-menu-toggle {
-                    display: block;
-                    background: none;
-                    border: none;
-                    color: white;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                }
-            }
-            
-            .mobile-menu-toggle {
-                display: none;
-            }
-        `;
-
-        // Add mobile styles to document
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = mobileStyles;
-        document.head.appendChild(styleSheet);
-
-        // Add mobile menu button to nav
-        const mobileButton = document.createElement('button');
-        mobileButton.className = 'mobile-menu-toggle';
-        mobileButton.innerHTML = '<i class="fas fa-bars"></i>';
-        mobileButton.onclick = toggleMobileMenu;
-        document.querySelector('.nav').appendChild(mobileButton);
-
         // Copy query to clipboard
         function copyQuery() {
             if (!currentQuery) {
@@ -1207,7 +1361,7 @@
 
         // Initialize tooltips and help system
         function initializeHelp() {
-            const helpData = {
+            const helpData = { // Not directly used for tooltips but good for reference
                 'site:': 'Search within a specific website or domain',
                 'filetype:': 'Search for specific file types',
                 'intitle:': 'Search for pages with specific words in the title',
@@ -1231,18 +1385,16 @@
 
         function getHelpText(inputId) {
             const helpTexts = {
-                'site': 'Enter domain name (e.g., example.com)',
-                'filetype': 'Select file type to search for',
-                'searchTerms': 'Enter search terms separated by commas',
-                'inurl': 'Text that should appear in URLs',
-                'intitle': 'Text that should appear in page titles',
-                'exclude': 'Terms to exclude from results'
+                'site': 'Enter domain name (e.g., example.com) to search within that site.',
+                'filetype': 'Select a specific file type to narrow down results (e.g., PDF, DOCX, SQL).',
+                'searchTerms': 'Enter keywords or phrases to search for. Use commas to separate multiple terms (e.g., password, admin, config).',
+                'inurl': 'Enter keywords or patterns that must appear in the URL (e.g., admin, login, config).',
+                'intitle': 'Enter keywords or phrases that must appear in the page title (e.g., index of, admin panel).',
+                'exclude': 'Enter terms to exclude from the search results, separated by commas (e.g., old, test, dev).'
             };
             return helpTexts[inputId] || '';
         }
 
-        // Initialize help system
-        document.addEventListener('DOMContentLoaded', initializeHelp);
     </script>
 </body>
 </html>
