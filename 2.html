@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DorkMaster Pro - Advanced Security Research Tool</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --bg-card: #1e293b;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--gradient);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Main Content */
+        .main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 140px);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Search Interface */
+        .search-interface {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-main {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .search-sidebar {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Dork Templates */
+        .dork-templates {
+            margin-bottom: 2rem;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .template-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .template-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .template-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-query {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: var(--secondary);
+            padding: 8px;
+            border-radius: 4px;
+            color: var(--success);
+        }
+
+        /* Results */
+        .results-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .query-preview {
+            font-family: 'Courier New', monospace;
+            background: var(--primary);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            word-break: break-all;
+        }
+
+        .search-engines {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .engine-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s;
+        }
+
+        .engine-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .engine-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--secondary);
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* Saved Queries */
+        .saved-queries {
+            margin-top: 1rem;
+        }
+
+        .saved-item {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .saved-query {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--success);
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-interface {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .btn-group {
+                justify-content: center;
+            }
+            
+            .template-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border: 1px solid;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <div class="logo">
+                <i class="fas fa-search"></i>
+                <span>DorkMaster Pro</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-link">Home</a></li>
+                <li><a href="#" class="nav-link">Templates</a></li>
+                <li><a href="#" class="nav-link">Saved</a></li>
+                <li><a href="#" class="nav-link">Help</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main container">
+        <section class="hero">
+            <h1>Advanced Google Dork Security Research Tool</h1>
+            <p>Professional-grade dorking tool for security researchers, penetration testers, and cybersecurity professionals. Discover vulnerabilities, misconfigurations, and exposed data across the web.</p>
+        </section>
+
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Legal Notice:</strong> This tool is for authorized security research and penetration testing only. Ensure you have proper authorization before testing any systems.
+        </div>
+
+        <div class="search-interface">
+            <div class="search-main">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('builder')">Query Builder</div>
+                    <div class="tab" onclick="switchTab('manual')">Manual Query</div>
+                    <div class="tab" onclick="switchTab('templates')">Templates</div>
+                </div>
+
+                <div id="builder" class="tab-content active">
+                    <div class="form-group">
+                        <label class="form-label">Target Domain/Site</label>
+                        <input type="text" class="form-input" id="site" placeholder="example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">File Type</label>
+                        <select class="form-select" id="filetype">
+                            <option value="">Any</option>
+                            <option value="pdf">PDF</option>
+                            <option value="doc">DOC</option>
+                            <option value="docx">DOCX</option>
+                            <option value="xls">XLS</option>
+                            <option value="xlsx">XLSX</option>
+                            <option value="ppt">PPT</option>
+                            <option value="txt">TXT</option>
+                            <option value="xml">XML</option>
+                            <option value="sql">SQL</option>
+                            <option value="log">LOG</option>
+                            <option value="bak">BAK</option>
+                            <option value="php">PHP</option>
+                            <option value="asp">ASP</option>
+                            <option value="jsp">JSP</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Search Terms</label>
+                        <input type="text" class="form-input" id="searchTerms" placeholder="password, admin, config, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">URL Contains</label>
+                        <input type="text" class="form-input" id="inurl" placeholder="admin, login, config, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Page Title Contains</label>
+                        <input type="text" class="form-input" id="intitle" placeholder="index of, admin panel, etc.">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Exclude Terms</label>
+                        <input type="text" class="form-input" id="exclude" placeholder="Terms to exclude">
+                    </div>
+                </div>
+
+                <div id="manual" class="tab-content">
+                    <div class="form-group">
+                        <label class="form-label">Manual Dork Query</label>
+                        <textarea class="form-input" id="manualQuery" rows="4" placeholder="Enter your custom Google dork query here..."></textarea>
+                    </div>
+                </div>
+
+                <div id="templates" class="tab-content">
+                    <div class="template-grid" id="templateGrid">
+                        <!-- Templates will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="buildQuery()">
+                        <i class="fas fa-magic"></i> Build Query
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearForm()">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                    <button class="btn btn-secondary" onclick="saveQuery()">
+                        <i class="fas fa-save"></i> Save Query
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-sidebar">
+                <h3>Quick Actions</h3>
+                <div class="btn-group" style="flex-direction: column;">
+                    <button class="btn btn-secondary" onclick="loadTemplate('sensitive-files')">
+                        <i class="fas fa-file-alt"></i> Sensitive Files
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('login-pages')">
+                        <i class="fas fa-sign-in-alt"></i> Login Pages
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('directory-listing')">
+                        <i class="fas fa-folder-open"></i> Directory Listings
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('error-pages')">
+                        <i class="fas fa-exclamation-triangle"></i> Error Pages
+                    </button>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Saved Queries</h3>
+                <div class="saved-queries" id="savedQueries">
+                    <!-- Saved queries will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="results-header">
+                <h2>Query Preview</h2>
+            </div>
+            
+            <div class="query-preview" id="queryPreview">
+                Build a query to see the preview here...
+            </div>
+
+            <div class="search-engines">
+                <a href="#" class="engine-card" id="googleLink">
+                    <div class="engine-icon">
+                        <i class="fab fa-google"></i>
+                    </div>
+                    <div>Google Search</div>
+                </a>
+                <a href="#" class="engine-card" id="bingLink">
+                    <div class="engine-icon">
+                        <i class="fab fa-microsoft"></i>
+                    </div>
+                    <div>Bing Search</div>
+                </a>
+                <a href="#" class="engine-card" id="yandexLink">
+                    <div class="engine-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div>Yandex Search</div>
+                </a>
+                <a href="#" class="engine-card" id="duckduckgoLink">
+                    <div class="engine-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div>DuckDuckGo</div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>DorkMaster Pro</h3>
+                    <p>Professional Google Dorking tool for security research and penetration testing.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Features</h3>
+                    <ul>
+                        <li><a href="#">Query Builder</a></li>
+                        <li><a href="#">Template Library</a></li>
+                        <li><a href="#">Multi-Engine Search</a></li>
+                        <li><a href="#">Save & Export</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Best Practices</a></li>
+                        <li><a href="#">Legal Guidelines</a></li>
+                        <li><a href="#">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Feedback</a></li>
+                        <li><a href="#">Bug Reports</a></li>
+                        <li><a href="#">Feature Requests</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 DorkMaster Pro. For authorized security research only.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Template data
+        const templates = {
+            'sensitive-files': {
+                title: 'Sensitive Files',
+                description: 'Find exposed sensitive files like configs, backups, logs',
+                queries: [
+                    'filetype:sql "MySQL dump" (pass|password|passwd|pwd)',
+                    'filetype:log "password" | "passwd" | "pass"',
+                    'filetype:bak inurl:"wp-config" | inurl:"config"',
+                    'filetype:conf "password" | "passwd" | "pass"',
+                    'intitle:"index of" "config.php" | "wp-config.php"',
+                    'filetype:env "DB_PASSWORD" | "DATABASE_URL"'
+                ]
+            },
+            'login-pages': {
+                title: 'Login Pages & Admin Panels',
+                description: 'Discover admin panels and login interfaces',
+                queries: [
+                    'inurl:admin intitle:admin',
+                    'inurl:login intitle:login',
+                    'intitle:"Admin Panel" | "Administration"',
+                    'inurl:wp-admin | inurl:administrator',
+                    'inurl:phpmyadmin intitle:phpmyadmin',
+                    'intitle:"Login" "admin" "password"'
+                ]
+            },
+            'directory-listing': {
+                title: 'Directory Listings',
+                description: 'Find open directory listings with exposed files',
+                queries: [
+                    'intitle:"index of" "parent directory"',
+                    'intitle:"index of" "backup" | "log" | "config"',
+                    'intitle:"index of" "database" | "sql" | "dump"',
+                    'intitle:"index of" "password" | "passwd"',
+                    'intitle:"index of" "ftp" | "ssh" | "mail"',
+                    'intitle:"index of" "private" | "secret"'
+                ]
+            },
+            'error-pages': {
+                title: 'Error Pages & Debug Info',
+                description: 'Find error pages that might leak information',
+                queries: [
+                    'intitle:"PHP Parse error" | "PHP Warning" | "PHP Error"',
+                    'intitle:"MySQL Error" | "SQL Error" | "Database Error"',
+                    'intitle:"Apache Tomcat" "Error Report"',
+                    'intitle:"Error 404" filetype:php',
+                    'intitle:"Internal Server Error"',
+                    'intitle:"Debug" | "Stack Trace" | "Exception"'
+                ]
+            },
+            'database-exposure': {
+                title: 'Database Exposures',
+                description: 'Find exposed databases and database files',
+                queries: [
+                    'filetype:sql "INSERT INTO" "password" | "passwd"',
+                    'filetype:sql "CREATE TABLE" users',
+                    'filetype:db | filetype:sqlite | filetype:mdb',
+                    'intitle:"phpMyAdmin" "running on" "MySQL"',
+                    'inurl:phpmyadmin inurl:db_structure.php',
+                    'filetype:sql intext:password | intext:passwd | intext:pass'
+                ]
+            },
+            'cloud-storage': {
+                title: 'Cloud Storage Buckets',
+                description: 'Find exposed cloud storage buckets',
+                queries: [
+                    'site:s3.amazonaws.com intitle:index.of',
+                    'site:googleapis.com inurl:storage',
+                    'site:digitaloceanspaces.com intitle:"index of"',
+                    'site:blob.core.windows.net intitle:"index of"',
+                    'inurl:".s3.amazonaws.com" intitle:"index of"',
+                    'filetype:xml inurl:"?xml" s3'
+                ]
+            },
+            'git-exposure': {
+                title: 'Git Repositories & Source Code',
+                description: 'Find exposed git repositories and source code',
+                queries: [
+                    'inurl:".git" intitle:"index of"',
+                    'intitle:"index of" ".git/config"',
+                    'filetype:git',
+                    'inurl:github.com "password" | "passwd" | "pass"',
+                    'site:pastebin.com "password" | "passwd" | "pass"',
+                    'intitle:"index of" "source" | "src" | "code"'
+                ]
+            },
+            'webcam-exposure': {
+                title: 'Exposed Webcams & IoT',
+                description: 'Find exposed webcams and IoT devices',
+                queries: [
+                    'intitle:"Live View" | "Network Camera"',
+                    'inurl:view/view.shtml',
+                    'intitle:"EvoCam" inurl:"webcam.html"',
+                    'intitle:"Live View / - AXIS"',
+                    'intitle:"WJ-NT104 Main Page"',
+                    'inurl:"ViewerFrame?Mode="'
+                ]
+            },
+            'vulnerable-apps': {
+                title: 'Vulnerable Applications',
+                description: 'Find potentially vulnerable web applications',
+                queries: [
+                    'intitle:"phpinfo()" "PHP Version"',
+                    'intitle:"Test Page for Apache Installation"',
+                    'intitle:"Welcome to nginx!"',
+                    'intitle:"Apache2 Ubuntu Default Page"',
+                    'intitle:"IIS Windows Server"',
+                    'inurl:shell.php | inurl:cmd.php | inurl:shell.jsp'
+                ]
+            }
+        };
+
+        let currentQuery = '';
+        let savedQueries = JSON.parse(localStorage.getItem('dorkQueries') || '[]');
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTemplates();
+            loadSavedQueries();
+            
+            // Add event listeners for real-time preview
+            document.querySelectorAll('#site, #filetype, #searchTerms, #inurl, #intitle, #exclude').forEach(input => {
+                input.addEventListener('input', buildQuery);
+            });
+            
+            document.getElementById('manualQuery').addEventListener('input', function() {
+                currentQuery = this.value;
+                updateQueryPreview();
+            });
+        });
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function loadTemplates() {
+            const templateGrid = document.getElementById('templateGrid');
+            templateGrid.innerHTML = '';
+            
+            Object.entries(templates).forEach(([key, template]) => {
+                const templateCard = document.createElement('div');
+                templateCard.className = 'template-card';
+                templateCard.onclick = () => loadTemplate(key);
+                
+                templateCard.innerHTML = `
+                    <div class="template-title">${template.title}</div>
+                    <div class="template-desc">${template.description}</div>
+                    <div class="template-query">${template.queries[0]}</div>
+                `;
+                
+                templateGrid.appendChild(templateCard);
+            });
+        }
+
+        function loadTemplate(templateKey) {
+            const template = templates[templateKey];
+            if (!template) return;
+            
+            // Switch to manual tab and load first query
+            switchTab('manual');
+            document.querySelector('.tab[onclick="switchTab(\'manual\')"]').click();
+            
+            const randomQuery = template.queries[Math.floor(Math.random() * template.queries.length)];
+            document.getElementById('manualQuery').value = randomQuery;
+            currentQuery = randomQuery;
+            updateQueryPreview();
+        }
+
+        function buildQuery() {
+            const site = document.getElementById('site').value.trim();
+            const filetype = document.getElementById('filetype').value;
+            const searchTerms = document.getElementById('searchTerms').value.trim();
+            const inurl = document.getElementById('inurl').value.trim();
+            const intitle = document.getElementById('intitle').value.trim();
+            const exclude = document.getElementById('exclude').value.trim();
+            
+            let query = '';
+            
+            if (site) {
+                query += `site:${site} `;
+            }
+            
+            if (filetype) {
+                query += `filetype:${filetype} `;
+            }
+            
+            if (searchTerms) {
+                // Handle multiple search terms
+                const terms = searchTerms.split(',').map(term => term.trim()).filter(term => term);
+                if (terms.length > 1) {
+                    query += `(${terms.map(term => `"${term}"`).join(' OR ')}) `;
+                } else if (terms.length === 1) {
+                    query += `"${terms[0]}" `;
+                }
+            }
+            
+            if (inurl) {
+                query += `inurl:${inurl} `;
+            }
+            
+            if (intitle) {
+                query += `intitle:"${intitle}" `;
+            }
+            
+            if (exclude) {
+                const excludeTerms = exclude.split(',').map(term => term.trim()).filter(term => term);
+                excludeTerms.forEach(term => {
+                    query += `-"${term}" `;
+                });
+            }
+            
+            currentQuery = query.trim();
+            updateQueryPreview();
+        }
+
+        function updateQueryPreview() {
+            const preview = document.getElementById('queryPreview');
+            if (currentQuery) {
+                preview.textContent = currentQuery;
+                updateSearchLinks();
+            } else {
+                preview.textContent = 'Build a query to see the preview here...';
+                clearSearchLinks();
+            }
+        }
+
+        function updateSearchLinks() {
+            const encodedQuery = encodeURIComponent(currentQuery);
+            
+            document.getElementById('googleLink').href = `https://www.google.com/search?q=${encodedQuery}`;
+            document.getElementById('bingLink').href = `https://www.bing.com/search?q=${encodedQuery}`;
+            document.getElementById('yandexLink').href = `https://yandex.com/search/?text=${encodedQuery}`;
+            document.getElementById('duckduckgoLink').href = `https://duckduckgo.com/?q=${encodedQuery}`;
+        }
+
+        function clearSearchLinks() {
+            document.querySelectorAll('.engine-card').forEach(link => {
+                link.href = '#';
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('site').value = '';
+            document.getElementById('filetype').value = '';
+            document.getElementById('searchTerms').value = '';
+            document.getElementById('inurl').value = '';
+            document.getElementById('intitle').value = '';
+            document.getElementById('exclude').value = '';
+            document.getElementById('manualQuery').value = '';
+            currentQuery = '';
+            updateQueryPreview();
+        }
+
+        function saveQuery() {
+            if (!currentQuery.trim()) {
+                alert('Please build or enter a query first');
+                return;
+            }
+            
+            const queryName = prompt('Enter a name for this query:');
+            if (queryName) {
+                const savedQuery = {
+                    id: Date.now(),
+                    name: queryName,
+                    query: currentQuery,
+                    timestamp: new Date().toISOString()
+                };
+                
+                savedQueries.unshift(savedQuery);
+                
+                // Keep only the last 50 queries
+                if (savedQueries.length > 50) {
+                    savedQueries = savedQueries.slice(0, 50);
+                }
+                
+                // Note: In a real application, you'd save to a backend
+                // For demo purposes, we'll use a simple array
+                loadSavedQueries();
+                
+                alert('Query saved successfully!');
+            }
+        }
+
+        function loadSavedQueries() {
+            const container = document.getElementById('savedQueries');
+            container.innerHTML = '';
+            
+            if (savedQueries.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">No saved queries yet</p>';
+                return;
+            }
+            
+            savedQueries.slice(0, 10).forEach(saved => {
+                const item = document.createElement('div');
+                item.className = 'saved-item';
+                
+                item.innerHTML = `
+                    <div>
+                        <div style="font-size: 0.9rem; margin-bottom: 4px;">${saved.name}</div>
+                        <div class="saved-query">${saved.query.substring(0, 50)}${saved.query.length > 50 ? '...' : ''}</div>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary btn-small" onclick="loadSavedQuery('${saved.id}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="deleteSavedQuery('${saved.id}')" style="margin-left: 5px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function loadSavedQuery(queryId) {
+            const saved = savedQueries.find(q => q.id == queryId);
+            if (saved) {
+                switchTab('manual');
+                document.querySelector('.tab[onclick="switchTab(\'manual\')"]').click();
+                document.getElementById('manualQuery').value = saved.query;
+                currentQuery = saved.query;
+                updateQueryPreview();
+            }
+        }
+
+        function deleteSavedQuery(queryId) {
+            if (confirm('Are you sure you want to delete this saved query?')) {
+                savedQueries = savedQueries.filter(q => q.id != queryId);
+                loadSavedQueries();
+            }
+        }
+
+        // Advanced query builder functions
+        function addAdvancedOperator(operator) {
+            const manualQuery = document.getElementById('manualQuery');
+            const currentPos = manualQuery.selectionStart;
+            const currentValue = manualQuery.value;
+            
+            let insertion = '';
+            switch(operator) {
+                case 'AND':
+                    insertion = ' AND ';
+                    break;
+                case 'OR':
+                    insertion = ' OR ';
+                    break;
+                case 'NOT':
+                    insertion = ' -';
+                    break;
+                case 'WILDCARD':
+                    insertion = '*';
+                    break;
+                case 'EXACT':
+                    insertion = '""';
+                    break;
+            }
+            
+            manualQuery.value = currentValue.slice(0, currentPos) + insertion + currentValue.slice(currentPos);
+            manualQuery.focus();
+            manualQuery.setSelectionRange(currentPos + insertion.length, currentPos + insertion.length);
+            
+            currentQuery = manualQuery.value;
+            updateQueryPreview();
+        }
+
+        // Export functionality
+        function exportQueries() {
+            if (savedQueries.length === 0) {
+                alert('No saved queries to export');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(savedQueries, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'dork_queries_export.json';
+            link.click();
+        }
+
+        // Import functionality
+        function importQueries() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        if (Array.isArray(imported)) {
+                            savedQueries = [...imported, ...savedQueries];
+                            loadSavedQueries();
+                            alert('Queries imported successfully!');
+                        } else {
+                            alert('Invalid file format');
+                        }
+                    } catch (error) {
+                        alert('Error reading file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to build query
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                buildQuery();
+            }
+            
+            // Ctrl/Cmd + S to save query
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveQuery();
+            }
+            
+            // Escape to clear
+            if (e.key === 'Escape') {
+                clearForm();
+            }
+        });
+
+        // Responsive menu toggle
+        function toggleMobileMenu() {
+            const menu = document.querySelector('.nav-menu');
+            menu.classList.toggle('mobile-active');
+        }
+
+        // Add mobile menu styles
+        const mobileStyles = `
+            @media (max-width: 768px) {
+                .nav-menu {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: var(--secondary);
+                    flex-direction: column;
+                    padding: 1rem;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    transform: translateY(-100%);
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s;
+                }
+                
+                .nav-menu.mobile-active {
+                    display: flex;
+                    transform: translateY(0);
+                    opacity: 1;
+                    visibility: visible;
+                }
+                
+                .mobile-menu-toggle {
+                    display: block;
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                }
+            }
+            
+            .mobile-menu-toggle {
+                display: none;
+            }
+        `;
+
+        // Add mobile styles to document
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = mobileStyles;
+        document.head.appendChild(styleSheet);
+
+        // Add mobile menu button to nav
+        const mobileButton = document.createElement('button');
+        mobileButton.className = 'mobile-menu-toggle';
+        mobileButton.innerHTML = '<i class="fas fa-bars"></i>';
+        mobileButton.onclick = toggleMobileMenu;
+        document.querySelector('.nav').appendChild(mobileButton);
+
+        // Copy query to clipboard
+        function copyQuery() {
+            if (!currentQuery) {
+                alert('No query to copy');
+                return;
+            }
+            
+            navigator.clipboard.writeText(currentQuery).then(() => {
+                // Show temporary success message
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = 'var(--success)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = currentQuery;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Query copied to clipboard!');
+            });
+        }
+
+        // Initialize tooltips and help system
+        function initializeHelp() {
+            const helpData = {
+                'site:': 'Search within a specific website or domain',
+                'filetype:': 'Search for specific file types',
+                'intitle:': 'Search for pages with specific words in the title',
+                'inurl:': 'Search for pages with specific words in the URL',
+                'intext:': 'Search for pages with specific words in the text',
+                'cache:': 'Show Google\'s cached version of a page',
+                'related:': 'Find pages related to a specific URL',
+                'info:': 'Get information about a specific URL',
+                'define:': 'Get definitions of words or phrases',
+                'stocks:': 'Get stock information',
+                'weather:': 'Get weather information',
+                'movie:': 'Get movie information',
+                'map:': 'Get maps and location information'
+            };
+
+            // Add help tooltips to form inputs
+            document.querySelectorAll('.form-input, .form-select').forEach(input => {
+                input.title = getHelpText(input.id);
+            });
+        }
+
+        function getHelpText(inputId) {
+            const helpTexts = {
+                'site': 'Enter domain name (e.g., example.com)',
+                'filetype': 'Select file type to search for',
+                'searchTerms': 'Enter search terms separated by commas',
+                'inurl': 'Text that should appear in URLs',
+                'intitle': 'Text that should appear in page titles',
+                'exclude': 'Terms to exclude from results'
+            };
+            return helpTexts[inputId] || '';
+        }
+
+        // Initialize help system
+        document.addEventListener('DOMContentLoaded', initializeHelp);
+    </script>
+</body>
+</html>
