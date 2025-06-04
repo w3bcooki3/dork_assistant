@@ -1407,7 +1407,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">File Type <i class="fas fa-info-circle help-icon" title="Search for specific file extensions (e.g., pdf, docx, sql, env)."></i></label>
+                        <label class="form-label">File Type <i class="fas fa-info-circle help-icon" title="Search for specific file extensions (e.g., pdf, docx, sql, env). Not applicable to Shodan/Censys."></i></label>
                         <select class="form-select" id="filetype">
                             <option value="">Any</option>
                             <option value="pdf">PDF</option>
@@ -2102,11 +2102,12 @@
             loadSavedCategories();
             loadSavedQueries('All'); // Load all saved queries initially
             
-            // Add event listeners for real-time preview
+            // Add event listeners for real-time preview (for builder tab)
             document.querySelectorAll('#site, #filetype, #searchTerms, #customKeywords, #inurl, #intitle, #exclude').forEach(input => {
-                input.addEventListener('input', () => buildQuery('google'));
+                input.addEventListener('input', () => buildQueryFromBuilder());
             });
             
+            // Add event listeners for manual tab fields
             document.getElementById('manualGoogleQuery').addEventListener('input', function() {
                 currentGoogleQuery = this.value;
                 updateQueryPreview('google');
@@ -2137,8 +2138,8 @@
             document.body.classList.add(savedTheme + '-mode');
             updateThemeIcon(savedTheme);
 
-            // Set initial preview to Google query
-            updateQueryPreview('google');
+            // Set initial preview to Google query from builder
+            buildQueryFromBuilder();
         });
 
         function switchTab(tabName) {
@@ -2163,8 +2164,12 @@
 
             // Update preview based on selected tab's default
             if (tabName === 'builder') {
-                buildQuery('google'); // Re-build Google query
+                buildQueryFromBuilder(); // Re-build all queries and update preview
             } else if (tabName === 'manual') {
+                // Sync manual fields with current generated queries if they exist
+                document.getElementById('manualGoogleQuery').value = currentGoogleQuery;
+                document.getElementById('manualShodanQuery').value = currentShodanQuery;
+                document.getElementById('manualCensysQuery').value = currentCensysQuery;
                 updateQueryPreview('google'); // Default to Google preview in manual tab
             } else if (tabName === 'templates') {
                 // When switching to templates, we don't have a default query to display immediately
@@ -2312,104 +2317,175 @@
             
             switchTab('manual'); // Always switch to manual tab
 
+            // Clear all manual fields first
+            document.getElementById('manualGoogleQuery').value = '';
+            document.getElementById('manualShodanQuery').value = '';
+            document.getElementById('manualCensysQuery').value = '';
+            currentGoogleQuery = '';
+            currentShodanQuery = '';
+            currentCensysQuery = '';
+
+
             if (engineType === 'shodan') {
-                document.getElementById('manualGoogleQuery').value = '';
-                document.getElementById('manualCensysQuery').value = '';
                 document.getElementById('manualShodanQuery').value = template.queries[0];
-                currentGoogleQuery = '';
-                currentCensysQuery = '';
                 currentShodanQuery = template.queries[0];
                 updateQueryPreview('shodan');
             } else if (engineType === 'censys') {
-                document.getElementById('manualGoogleQuery').value = '';
-                document.getElementById('manualShodanQuery').value = '';
                 document.getElementById('manualCensysQuery').value = template.queries[0];
-                currentGoogleQuery = '';
-                currentShodanQuery = '';
                 currentCensysQuery = template.queries[0];
                 updateQueryPreview('censys');
             } else { // Default to Google
-                document.getElementById('manualShodanQuery').value = '';
-                document.getElementById('manualCensysQuery').value = '';
                 document.getElementById('manualGoogleQuery').value = template.queries[0];
                 currentGoogleQuery = template.queries[0];
-                currentShodanQuery = '';
-                currentCensysQuery = '';
                 updateQueryPreview('google');
             }
         }
 
-        function buildQuery(engine = 'google') {
-            if (engine === 'google') {
-                const site = document.getElementById('site').value.trim();
-                const filetype = document.getElementById('filetype').value;
-                const searchTerms = document.getElementById('searchTerms').value.trim();
-                const customKeywords = document.getElementById('customKeywords').value.trim(); // New field
-                const inurl = document.getElementById('inurl').value.trim();
-                const intitle = document.getElementById('intitle').value.trim();
-                const exclude = document.getElementById('exclude').value.trim();
-                
-                let query = '';
-                
-                if (site) {
-                    query += `site:${site} `;
-                }
-                
-                if (filetype) {
-                    query += `filetype:${filetype} `;
-                }
-                
-                if (searchTerms) {
-                    const terms = searchTerms.split(',').map(term => term.trim()).filter(term => term);
-                    if (terms.length > 0) {
-                        query += `(${terms.map(term => `"${term}"`).join(' OR ')}) `;
-                    }
-                }
+        function buildQueryFromBuilder() {
+            const site = document.getElementById('site').value.trim();
+            const filetype = document.getElementById('filetype').value;
+            const searchTerms = document.getElementById('searchTerms').value.trim();
+            const customKeywords = document.getElementById('customKeywords').value.trim();
+            const inurl = document.getElementById('inurl').value.trim();
+            const intitle = document.getElementById('intitle').value.trim();
+            const exclude = document.getElementById('exclude').value.trim();
 
-                if (customKeywords) { // Add custom keywords
-                    const customTerms = customKeywords.split(',').map(term => term.trim()).filter(term => term);
-                    if (customTerms.length > 0) {
-                        query += `${customTerms.join(' ')} `; // Add as-is, no quotes by default
-                    }
-                }
-                
-                if (inurl) {
-                    const inurlTerms = inurl.split(',').map(term => `inurl:"${term.trim()}"`).filter(term => term);
-                    if (inurlTerms.length > 0) {
-                        query += `${inurlTerms.join(' ')} `;
-                    }
-                }
-                
-                if (intitle) {
-                    const intitleTerms = intitle.split(',').map(term => `intitle:"${term.trim()}"`).filter(term => term);
-                    if (intitleTerms.length > 0) {
-                        query += `${intitleTerms.join(' ')} `;
-                    }
-                }
-                
-                if (exclude) {
-                    const excludeTerms = exclude.split(',').map(term => term.trim()).filter(term => term);
-                    excludeTerms.forEach(term => {
-                        query += `-"${term}" `;
-                    });
-                }
-                
-                currentGoogleQuery = query.trim();
-                updateQueryPreview('google');
-            } else if (engine === 'shodan') {
-                const shodanQuery = document.getElementById('manualShodanQuery').value.trim();
-                currentShodanQuery = shodanQuery;
-                updateQueryPreview('shodan');
-            } else if (engine === 'censys') {
-                const censysQuery = document.getElementById('manualCensysQuery').value.trim();
-                currentCensysQuery = censysQuery;
-                updateQueryPreview('censys');
+            // --- Build Google Query ---
+            let googleQueryParts = [];
+            
+            if (site) {
+                googleQueryParts.push(`site:${site}`);
             }
+            if (filetype) {
+                googleQueryParts.push(`filetype:${filetype}`);
+            }
+            if (searchTerms) {
+                const terms = searchTerms.split(',').map(term => term.trim()).filter(term => term);
+                if (terms.length > 0) {
+                    googleQueryParts.push(`(${terms.map(term => `"${term}"`).join(' OR ')})`);
+                }
+            }
+            if (customKeywords) {
+                const customTerms = customKeywords.split(',').map(term => term.trim()).filter(term => term);
+                if (customTerms.length > 0) {
+                    googleQueryParts.push(...customTerms);
+                }
+            }
+            if (inurl) {
+                const inurlTerms = inurl.split(',').map(term => `inurl:"${term.trim()}"`).filter(term => term);
+                if (inurlTerms.length > 0) {
+                    googleQueryParts.push(...inurlTerms);
+                }
+            }
+            if (intitle) {
+                const intitleTerms = intitle.split(',').map(term => `intitle:"${term.trim()}"`).filter(term => term);
+                if (intitleTerms.length > 0) {
+                    googleQueryParts.push(...intitleTerms);
+                }
+            }
+            if (exclude) {
+                const excludeTerms = exclude.split(',').map(term => `-"${term.trim()}"`).filter(term => term);
+                if (excludeTerms.length > 0) {
+                    googleQueryParts.push(...excludeTerms);
+                }
+            }
+            currentGoogleQuery = googleQueryParts.join(' ').trim();
+
+            // --- Build Shodan Query ---
+            let shodanQueryParts = [];
+            if (site) {
+                // Determine if it's a TLD, domain, or hostname
+                if (site.startsWith('.')) { // Likely a TLD like .gov
+                    shodanQueryParts.push(`tld:${site.substring(1)}`);
+                } else if (site.includes('.')) { // Regular domain or subdomain
+                    // Simple check for subdomain - if it has more than one dot and the first part isn't www
+                    const parts = site.split('.');
+                    if (parts.length > 2 || (parts.length === 2 && parts[0] !== 'www')) {
+                        shodanQueryParts.push(`hostname:${site}`);
+                    } else {
+                        shodanQueryParts.push(`domain:${site}`);
+                    }
+                } else { // Fallback for single word site?
+                    shodanQueryParts.push(site); // Treat as general keyword
+                }
+            }
+            // Filetype is generally not applicable to Shodan in a direct search operator
+            
+            const combinedSearchTerms = [...searchTerms.split(',').map(term => term.trim()).filter(term => term),
+                                         ...customKeywords.split(',').map(term => term.trim()).filter(term => term)];
+            if (combinedSearchTerms.length > 0) {
+                shodanQueryParts.push(combinedSearchTerms.join(' '));
+            }
+            if (inurl) {
+                const inurlTerms = inurl.split(',').map(term => term.trim()).filter(term => term);
+                if (inurlTerms.length > 0) {
+                    shodanQueryParts.push(inurlTerms.map(term => `http.url:"${term}"`).join(' OR '));
+                }
+            }
+            if (intitle) {
+                const intitleTerms = intitle.split(',').map(term => term.trim()).filter(term => term);
+                if (intitleTerms.length > 0) {
+                    shodanQueryParts.push(intitleTerms.map(term => `http.title:"${term}"`).join(' OR '));
+                }
+            }
+            if (exclude) {
+                const excludeTerms = exclude.split(',').map(term => `-${term.trim()}`).filter(term => term);
+                if (excludeTerms.length > 0) {
+                    shodanQueryParts.push(...excludeTerms);
+                }
+            }
+            currentShodanQuery = shodanQueryParts.join(' ').trim();
+
+
+            // --- Build Censys Query ---
+            let censysQueryParts = [];
+            if (site) {
+                if (site.includes('.')) {
+                    censysQueryParts.push(`parsed.names: ${site}`);
+                } else {
+                    censysQueryParts.push(`autonomous_system.organization: "${site}"`); // Try org for generic words
+                }
+            }
+            // Filetype is generally not applicable to Censys in a direct search operator
+
+            if (combinedSearchTerms.length > 0) {
+                censysQueryParts.push(`(${combinedSearchTerms.map(term => `services.http.response.body: "${term}"`).join(' OR ')})`);
+            }
+            if (inurl) {
+                const inurlTerms = inurl.split(',').map(term => term.trim()).filter(term => term);
+                if (inurlTerms.length > 0) {
+                    censysQueryParts.push(`(${inurlTerms.map(term => `services.http.response.request.path: "${term}"`).join(' OR ')})`);
+                }
+            }
+            if (intitle) {
+                const intitleTerms = intitle.split(',').map(term => term.trim()).filter(term => term);
+                if (intitleTerms.length > 0) {
+                    censysQueryParts.push(`(${intitleTerms.map(term => `services.http.response.html_title: "${term}"`).join(' OR ')})`);
+                }
+            }
+            if (exclude) {
+                const excludeTerms = exclude.split(',').map(term => term.trim()).filter(term => term);
+                if (excludeTerms.length > 0) {
+                    censysQueryParts.push(`NOT (${excludeTerms.join(' OR ')})`);
+                }
+            }
+            currentCensysQuery = censysQueryParts.join(' ').trim();
+
+
+            updateQueryPreview('google'); // Default to showing Google query in preview
         }
 
+        // This function is now responsible for running the query
         function buildQueryAndRun(engine = 'google') {
+            // If called from the builder, re-build all queries first
+            const currentTab = document.querySelector('.tabs .tab.active').id;
+            if (currentTab === 'builder') {
+                buildQueryFromBuilder();
+            } else if (currentTab === 'manual') {
+                // Queries are already in currentGoogleQuery, currentShodanQuery, currentCensysQuery via input listeners
+            }
+
             if (engine === 'google') {
-                buildQuery('google'); 
                 if (currentGoogleQuery) {
                     window.open(`https://www.google.com/search?q=${encodeURIComponent(currentGoogleQuery)}`, '_blank');
                     showAlert('Google search initiated with your query!', 'success');
@@ -2417,20 +2493,18 @@
                     showAlert('No Google query to run. Please build one first in Query Builder or enter in Manual Query.', 'warning');
                 }
             } else if (engine === 'shodan') {
-                const shodanQuery = document.getElementById('manualShodanQuery').value.trim();
-                if (shodanQuery) {
-                    window.open(`https://www.shodan.io/search?query=${encodeURIComponent(shodanQuery)}`, '_blank');
+                if (currentShodanQuery) {
+                    window.open(`https://www.shodan.io/search?query=${encodeURIComponent(currentShodanQuery)}`, '_blank');
                     showAlert('Shodan search initiated!', 'success');
                 } else {
-                    showAlert('Please enter a Shodan query in the manual query tab to search Shodan.', 'warning');
+                    showAlert('No Shodan query to run. Please build one in Query Builder or enter in Manual Query.', 'warning');
                 }
             } else if (engine === 'censys') {
-                const censysQuery = document.getElementById('manualCensysQuery').value.trim();
-                if (censysQuery) {
-                    window.open(`https://search.censys.io/search?resource=hosts&query=${encodeURIComponent(censysQuery)}`, '_blank');
+                if (currentCensysQuery) {
+                    window.open(`https://search.censys.io/search?resource=hosts&query=${encodeURIComponent(currentCensysQuery)}`, '_blank');
                     showAlert('Censys search initiated!', 'success');
                 } else {
-                    showAlert('Please enter a Censys query in the manual query tab to search Censys.', 'warning');
+                    showAlert('No Censys query to run. Please build one in Query Builder or enter in Manual Query.', 'warning');
                 }
             }
         }
@@ -2441,7 +2515,8 @@
 
             if (engineType === 'google') {
                 displayQuery = currentGoogleQuery;
-                document.getElementById('manualGoogleQuery').value = currentGoogleQuery; // Sync manual field
+                // Sync manual field when builder updates
+                document.getElementById('manualGoogleQuery').value = currentGoogleQuery; 
             } else if (engineType === 'shodan') {
                 displayQuery = currentShodanQuery;
             } else if (engineType === 'censys') {
@@ -2450,14 +2525,15 @@
             
             if (displayQuery) {
                 preview.textContent = displayQuery;
-                updateSearchLinks(engineType);
+                updateSearchLinks(); // Update all links based on all current queries
             } else {
                 preview.textContent = 'Build a query or select a template to see the preview here...';
                 clearSearchLinks();
             }
         }
 
-        function updateSearchLinks(activeEngine = 'google') {
+        // Modified to always update all search engine links based on current global query variables
+        function updateSearchLinks() {
             const googleLink = document.getElementById('googleLink');
             const bingLink = document.getElementById('bingLink');
             const yandexLink = document.getElementById('yandexLink');
@@ -2465,22 +2541,20 @@
             const shodanLink = document.getElementById('shodanLink');
             const censysLink = document.getElementById('censysLink');
 
-            // Reset all links first
-            clearSearchLinks();
+            // Set Google/Bing/Yandex/DuckDuckGo links
+            const encodedGoogleQuery = encodeURIComponent(currentGoogleQuery);
+            googleLink.href = currentGoogleQuery ? `https://www.google.com/search?q=${encodedGoogleQuery}` : '#';
+            bingLink.href = currentGoogleQuery ? `https://www.bing.com/search?q=${encodedGoogleQuery}` : '#';
+            yandexLink.href = currentGoogleQuery ? `https://yandex.com/search/?text=${encodedGoogleQuery}` : '#';
+            duckduckgoLink.href = currentGoogleQuery ? `https://duckduckgo.com/?q=${encodedGoogleQuery}` : '#';
+            
+            // Set Shodan link
+            const encodedShodanQuery = encodeURIComponent(currentShodanQuery);
+            shodanLink.href = currentShodanQuery ? `https://www.shodan.io/search?query=${encodedShodanQuery}` : '#';
 
-            if (activeEngine === 'google') {
-                const encodedQuery = encodeURIComponent(currentGoogleQuery);
-                googleLink.href = `https://www.google.com/search?q=${encodedQuery}`;
-                bingLink.href = `https://www.bing.com/search?q=${encodedQuery}`;
-                yandexLink.href = `https://yandex.com/search/?text=${encodedQuery}`;
-                duckduckgoLink.href = `https://duckduckgo.com/?q=${encodedQuery}`;
-            } else if (activeEngine === 'shodan') {
-                const encodedShodanQuery = encodeURIComponent(currentShodanQuery);
-                shodanLink.href = `https://www.shodan.io/search?query=${encodedShodanQuery}`;
-            } else if (activeEngine === 'censys') {
-                const encodedCensysQuery = encodeURIComponent(currentCensysQuery);
-                censysLink.href = `https://search.censys.io/search?resource=hosts&query=${encodedCensysQuery}`;
-            }
+            // Set Censys link
+            const encodedCensysQuery = encodeURIComponent(currentCensysQuery);
+            censysLink.href = currentCensysQuery ? `https://search.censys.io/search?resource=hosts&query=${encodedCensysQuery}` : '#';
         }
 
         function clearSearchLinks() {
@@ -2505,7 +2579,7 @@
             currentGoogleQuery = '';
             currentShodanQuery = '';
             currentCensysQuery = '';
-            updateQueryPreview('google'); // Reset preview to Google
+            updateQueryPreview('google'); // Reset preview to Google (which will be empty)
             showAlert('All fields cleared!', 'info');
         }
 
@@ -2515,7 +2589,7 @@
                 field.value = '';
                 // Trigger input event to update preview if it's a builder field
                 if (['site', 'filetype', 'searchTerms', 'customKeywords', 'inurl', 'intitle', 'exclude'].includes(fieldId)) {
-                    buildQuery('google');
+                    buildQueryFromBuilder();
                 } else if (fieldId === 'manualGoogleQuery' || fieldId === 'manualShodanQuery' || fieldId === 'manualCensysQuery') {
                     // Manually clear the respective current query variables
                     if (fieldId === 'manualGoogleQuery') currentGoogleQuery = '';
@@ -2533,9 +2607,19 @@
             const currentTab = document.querySelector('.tabs .tab.active').textContent.trim();
 
             if (currentTab === 'Query Builder') {
-                buildQuery('google'); // Ensure the Google query is up-to-date
-                queryToSave = currentGoogleQuery;
+                // Ensure queries are built from builder fields
+                buildQueryFromBuilder(); 
+                queryToSave = currentGoogleQuery; // Default to saving Google query from builder
                 queryType = 'google';
+                if (!queryToSave) { // If Google query is empty, try Shodan/Censys from builder
+                    if (currentShodanQuery) {
+                        queryToSave = currentShodanQuery;
+                        queryType = 'shodan';
+                    } else if (currentCensysQuery) {
+                        queryToSave = currentCensysQuery;
+                        queryType = 'censys';
+                    }
+                }
             } else if (currentTab === 'Manual Query') {
                 // Determine which manual query field has content
                 if (document.getElementById('manualGoogleQuery').value.trim()) {
@@ -2711,6 +2795,61 @@
             loadSavedQueries(currentCategory);
         }
 
+        function loadSavedQueryToField(queryId) {
+            const savedQuery = savedQueries.find(q => q.id == queryId);
+            if (savedQuery) {
+                // Clear all manual fields
+                document.getElementById('manualGoogleQuery').value = '';
+                document.getElementById('manualShodanQuery').value = '';
+                document.getElementById('manualCensysQuery').value = '';
+
+                // Populate the correct manual field based on type
+                if (savedQuery.type === 'google') {
+                    document.getElementById('manualGoogleQuery').value = savedQuery.query;
+                    currentGoogleQuery = savedQuery.query;
+                    currentShodanQuery = ''; // Clear other current queries
+                    currentCensysQuery = '';
+                    updateQueryPreview('google');
+                } else if (savedQuery.type === 'shodan') {
+                    document.getElementById('manualShodanQuery').value = savedQuery.query;
+                    currentShodanQuery = savedQuery.query;
+                    currentGoogleQuery = ''; // Clear other current queries
+                    currentCensysQuery = '';
+                    updateQueryPreview('shodan');
+                } else if (savedQuery.type === 'censys') {
+                    document.getElementById('manualCensysQuery').value = savedQuery.query;
+                    currentCensysQuery = savedQuery.query;
+                    currentGoogleQuery = ''; // Clear other current queries
+                    currentShodanQuery = '';
+                    updateQueryPreview('censys');
+                }
+                switchTab('manual'); // Switch to manual query tab
+                showAlert('Saved query loaded to manual input.', 'info');
+            }
+        }
+
+        function executeSavedQuery(queryId) {
+            const savedQuery = savedQueries.find(q => q.id == queryId);
+            if (savedQuery) {
+                // Update global query variables first
+                currentGoogleQuery = savedQuery.type === 'google' ? savedQuery.query : '';
+                currentShodanQuery = savedQuery.type === 'shodan' ? savedQuery.query : '';
+                currentCensysQuery = savedQuery.type === 'censys' ? savedQuery.query : '';
+
+                // Then call buildQueryAndRun with the correct type
+                buildQueryAndRun(savedQuery.type);
+            }
+        }
+
+        function deleteSavedQuery(queryId) {
+            if (confirm('Are you sure you want to delete this query?')) {
+                savedQueries = savedQueries.filter(q => q.id != queryId);
+                localStorage.setItem('dorkQueries', JSON.stringify(savedQueries));
+                loadSavedQueries(document.querySelector('#savedQueryCategoryList button.active').textContent.trim().replace('All Categories', 'All')); // Reload current category
+                showAlert('Query deleted.', 'success');
+            }
+        }
+
 
         // Advanced query operator insertion
         function insertOperator(targetFieldId, operator) {
@@ -2851,10 +2990,10 @@
             // Ctrl/Cmd + Enter to build query (and run if Google)
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
-                const currentTab = document.querySelector('.tabs .tab.active').textContent.trim();
-                if (currentTab === 'Query Builder') {
+                const currentTab = document.querySelector('.tabs .tab.active').id;
+                if (currentTab === 'builder') {
                     buildQueryAndRun('google'); // Call the function that builds and runs
-                } else if (currentTab === 'Manual Query') {
+                } else if (currentTab === 'manual') {
                     if (document.getElementById('manualGoogleQuery').value.trim()) {
                         buildQueryAndRun('google');
                     } else if (document.getElementById('manualShodanQuery').value.trim()) {
