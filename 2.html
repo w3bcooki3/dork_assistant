@@ -189,10 +189,12 @@
             padding: 1.5rem;
             border: 1px solid var(--border);
             transition: background 0.3s ease, border-color 0.3s ease;
+            align-self: flex-start; /* Ensure it sticks to the top of its grid cell */
         }
 
         .form-group {
             margin-bottom: 1.5rem;
+            position: relative; /* For clear button positioning */
         }
 
         .form-label {
@@ -463,7 +465,6 @@
         }
 
         .footer-description::before {
-            content: '🛡️';
             font-size: 1.2rem;
             margin-right: 8px;
             animation: rotate 6s linear infinite;
@@ -1105,6 +1106,10 @@
             .feature-grid {
                 grid-template-columns: 1fr;
             }
+            .search-sidebar {
+                position: static; /* Remove sticky on small screens */
+                margin-bottom: 2rem; /* Add space below sidebar */
+            }
         }
 
         /* Custom Alert/Notification */
@@ -1259,6 +1264,86 @@
         .footer-section a .fab.fa-github {
             font-size: 1.1rem; /* Adjust icon size if needed */
         }
+
+        /* Global Search Results Display */
+        #globalSearchResults {
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            display: none; /* Hidden by default */
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        #globalSearchResults.active {
+            display: block;
+        }
+
+        #globalSearchResults h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-result-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed var(--border);
+            cursor: pointer; /* Indicate clickability */
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item h4 {
+            color: var(--text);
+            margin-bottom: 0.4rem;
+            font-size: 1.1rem;
+        }
+
+        .search-result-item p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .highlight {
+            background-color: var(--warning); /* Highlight color */
+            color: var(--primary);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .clear-input-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 5px; /* Increase clickable area */
+        }
+        .clear-input-btn:hover {
+            opacity: 1;
+            color: var(--danger);
+        }
+
+        /* Buttons for Expand/Collapse All Info Sections */
+        .info-section-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -1272,7 +1357,7 @@
                 <li><a href="#" class="nav-link" onclick="switchTab('builder')">Home</a></li>
                 <li><a href="#" class="nav-link" onclick="switchTab('templates')">Templates</a></li>
                 <li><a href="#" class="nav-link" onclick="switchTab('saved-tab-content')">Saved</a></li>
-                <li><a href="#" class="nav-link">Help</a></li>
+                <li><a href="#" class="nav-link" onclick="toggleInfoSection('about-tool-content')">About</a></li>
                 <li><button class="theme-toggle" onclick="toggleTheme()">
                     <i class="fas fa-sun" id="theme-icon"></i>
                 </button></li>
@@ -1290,14 +1375,19 @@
             <div class="global-search-bar">
                 <input type="text" class="form-input" id="globalSearchBar" placeholder="Start your global dork search here...">
                 <button class="btn btn-primary" onclick="performGlobalSearch()">
-                    <i class="fas fa-globe"></i> Search All
+                    <i class="fas fa-search"></i> Search Local
                 </button>
+            </div>
+             <div id="globalSearchResults">
+                <h3>Local Search Results <button class="btn btn-secondary btn-small" onclick="clearGlobalSearchResults()">Clear Results</button></h3>
+                <div id="globalSearchResultsContent">
+                    </div>
             </div>
         </section>
 
         <div class="alert alert-warning">
             <i class="fas fa-exclamation-triangle"></i>
-            <strong>⚠️ Legal Notice:</strong> This tool is designed for security research, bug bounty hunting, and educational purposes. Always ensure you have proper authorization before testing on any systems. Respect robots.txt and terms of service. Misuse is strictly prohibited.
+            <strong>Legal Notice:</strong> This tool is for authorized security research and penetration testing only. Ensure you have proper authorization before testing any systems. Misuse is strictly prohibited.
         </div>
 
         <div class="search-interface">
@@ -1313,6 +1403,7 @@
                     <div class="form-group">
                         <label class="form-label">Target Domain/Site <i class="fas fa-info-circle help-icon" title="Restrict search to a specific domain (e.g., example.com) or a top-level domain (e.g., .gov)."></i></label>
                         <input type="text" class="form-input" id="site" placeholder="example.com">
+                        <button class="clear-input-btn" onclick="clearInputField('site')"><i class="fas fa-times"></i></button>
                     </div>
 
                     <div class="form-group">
@@ -1336,31 +1427,37 @@
                             <option value="env">ENV</option>
                             <option value="json">JSON</option>
                         </select>
+                        <button class="clear-input-btn" onclick="clearInputField('filetype')"><i class="fas fa-times"></i></button>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Search Terms <i class="fas fa-info-circle help-icon" title="Keywords or phrases to search for. Use commas to separate multiple terms (e.g., password, admin, config). Terms will be wrapped in quotes for exact match by default."></i></label>
                         <input type="text" class="form-input" id="searchTerms" placeholder="password, admin, config, etc.">
+                        <button class="clear-input-btn" onclick="clearInputField('searchTerms')"><i class="fas fa-times"></i></button>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Custom Keywords <i class="fas fa-info-circle help-icon" title="Add any custom keywords or phrases not covered by other fields (e.g., your_organization, specific_username, internal_project_name). These will be added as-is to the query."></i></label>
                         <input type="text" class="form-input" id="customKeywords" placeholder="your_organization, specific_username, internal_project_name">
+                        <button class="clear-input-btn" onclick="clearInputField('customKeywords')"><i class="fas fa-times"></i></button>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">URL Contains <i class="fas fa-info-circle help-icon" title="Keywords or patterns that must appear in the URL (e.g., admin, login, config). The 'inurl:' operator will be used."></i></label>
                         <input type="text" class="form-input" id="inurl" placeholder="admin, login, config, etc.">
+                        <button class="clear-input-btn" onclick="clearInputField('inurl')"><i class="fas fa-times"></i></button>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Page Title Contains <i class="fas fa-info-circle help-icon" title="Keywords or phrases that must appear in the HTML page title (e.g., 'index of', 'admin panel'). The 'intitle:' operator will be used."></i></label>
                         <input type="text" class="form-input" id="intitle" placeholder="index of, admin panel, etc.">
+                        <button class="clear-input-btn" onclick="clearInputField('intitle')"><i class="fas fa-times"></i></button>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Exclude Terms <i class="fas fa-info-circle help-icon" title="Terms to exclude from the search results, separated by commas (e.g., old, test, dev). Each term will be prepended with a minus sign (-)."></i></label>
                         <input type="text" class="form-input" id="exclude" placeholder="Terms to exclude">
+                        <button class="clear-input-btn" onclick="clearInputField('exclude')"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
 
@@ -1368,6 +1465,7 @@
                     <div class="form-group">
                         <label class="form-label">Google Dork Query <i class="fas fa-info-circle help-icon" title="Enter your custom Google dork query directly. Use advanced operators like site:, filetype:, inurl:, intitle:"></i></label>
                         <textarea class="form-input form-textarea" id="manualGoogleQuery" rows="4" placeholder="Enter your custom Google dork query here... e.g., site:example.com inurl:admin filetype:log"></textarea>
+                        <button class="clear-input-btn" onclick="clearInputField('manualGoogleQuery')"><i class="fas fa-times"></i></button>
                     </div>
                     <div class="advanced-operators">
                         <h4>Insert Google Operators:</h4>
@@ -1385,6 +1483,7 @@
                     <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
                         <label class="form-label">Shodan Query <i class="fas fa-info-circle help-icon" title="Enter your Shodan search query. Example: port:80 country:US product:nginx"></i></label>
                         <input type="text" class="form-input" id="manualShodanQuery" placeholder="port:80 country:US product:nginx">
+                        <button class="clear-input-btn" onclick="clearInputField('manualShodanQuery')"><i class="fas fa-times"></i></button>
                     </div>
                      <div class="advanced-operators">
                         <h4>Insert Shodan Operators:</h4>
@@ -1404,19 +1503,20 @@
                     <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
                         <label class="form-label">Censys Query <i class="fas fa-info-circle help-icon" title="Enter your Censys search query. Refer to Censys documentation for syntax. Example: autonomous_system.country_code: US AND protocols: HTTPS"></i></label>
                         <input type="text" class="form-input" id="manualCensysQuery" placeholder="autonomous_system.country_code: US AND protocols: HTTPS">
+                        <button class="clear-input-btn" onclick="clearInputField('manualCensysQuery')"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
 
                 <div id="templates" class="tab-content">
                     <div class="template-categories-sidebar">
                         <h3>Categories</h3>
-                        <div class="search-input-group" style="margin-bottom: 1rem;">
-                            <input type="text" class="form-input" id="templateSearchInput" placeholder="Search templates..." onkeyup="searchTemplates()">
-                        </div>
                         <ul id="templateCategoryList" class="category-list">
                             </ul>
                     </div>
                     <div class="template-main-content">
+                        <div class="search-input-group" style="margin-bottom: 1rem;">
+                             <input type="text" class="form-input" id="templateSearchInput" placeholder="Search templates..." onkeyup="searchTemplates()">
+                        </div>
                         <div class="template-grid" id="templateGrid">
                             </div>
                     </div>
@@ -1440,15 +1540,68 @@
                     </div>
                 </div>
 
+                <div class="results-section">
+                    <div class="results-header">
+                        <h2>Current Query Preview</h2>
+                        <button class="btn btn-secondary btn-small" onclick="copyQuery()"><i class="fas fa-copy"></i> Copy Preview</button>
+                    </div>
+                    
+                    <div class="query-preview" id="queryPreview">
+                        Build a query or select a template to see the preview here...
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> The query below is for general search engines. Shodan and Censys searches will open directly in a new tab.
+                    </div>
+
+                    <div class="search-engines">
+                        <a href="#" class="engine-card" id="googleLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fab fa-google"></i>
+                            </div>
+                            <div>Google Search</div>
+                        </a>
+                        <a href="#" class="engine-card" id="bingLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fab fa-microsoft"></i>
+                            </div>
+                            <div>Bing Search</div>
+                        </a>
+                        <a href="#" class="engine-card" id="yandexLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div>Yandex Search</div>
+                        </a>
+                        <a href="#" class="engine-card" id="duckduckgoLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div>DuckDuckGo</div>
+                        </a>
+                         <a href="#" class="engine-card" id="shodanLink" target="_blank">
+                            <div class="engine-icon">
+                                <img src="https://www.shodan.io/favicon.ico" alt="Shodan Icon" style="width: 2rem; height: 2rem; margin-bottom: 0.5rem;">
+                            </div>
+                            <div>Shodan.io</div>
+                        </a>
+                        <a href="#" class="engine-card" id="censysLink" target="_blank">
+                            <div class="engine-icon">
+                                <img src="https://censys.io/static/images/favicon-32x32.png" alt="Censys Icon" style="width: 2rem; height: 2rem; margin-bottom: 0.5rem;">
+                            </div>
+                            <div>Censys.io</div>
+                        </a>
+                    </div>
+                </div>
+
 
                 <div class="btn-group">
-                    <button class="btn btn-primary" onclick="buildQuery('google')">
-                        <i class="fas fa-magic"></i> Build Google Query
+                    <button class="btn btn-primary" onclick="buildQueryAndRun('google')">
+                        <i class="fas fa-magic"></i> Build Google Query & Run
                     </button>
-                    <button class="btn btn-primary" onclick="buildQuery('shodan')">
+                    <button class="btn btn-primary" onclick="buildQueryAndRun('shodan')">
                         <i class="fas fa-eye"></i> Open Shodan Search
                     </button>
-                    <button class="btn btn-primary" onclick="buildQuery('censys')">
+                    <button class="btn btn-primary" onclick="buildQueryAndRun('censys')">
                         <i class="fas fa-server"></i> Open Censys Search
                     </button>
                     <button class="btn btn-secondary" onclick="clearForm()">
@@ -1456,9 +1609,6 @@
                     </button>
                     <button class="btn btn-secondary" onclick="saveQuery()">
                         <i class="fas fa-save"></i> Save Query
-                    </button>
-                    <button class="btn btn-secondary" onclick="copyQuery()">
-                        <i class="fas fa-copy"></i> Copy Current Query
                     </button>
                     <button class="btn btn-secondary" onclick="exportQueries()">
                         <i class="fas fa-download"></i> Export Saved
@@ -1513,92 +1663,40 @@
             </div>
         </div>
 
-        <div class="results-section">
-            <div class="results-header">
-                <h2>Current Query Preview</h2>
-            </div>
-            
-            <div class="query-preview" id="queryPreview">
-                Build a query or select a template to see the preview here...
-            </div>
-            <div class="alert alert-info">
-                <strong>Note:</strong> The query below is for general search engines. Shodan and Censys searches will open directly in a new tab.
-            </div>
-
-            <div class="search-engines">
-                <a href="#" class="engine-card" id="googleLink" target="_blank">
-                    <div class="engine-icon">
-                        <i class="fab fa-google"></i>
-                    </div>
-                    <div>Google Search</div>
-                </a>
-                <a href="#" class="engine-card" id="bingLink" target="_blank">
-                    <div class="engine-icon">
-                        <i class="fab fa-microsoft"></i>
-                    </div>
-                    <div>Bing Search</div>
-                </a>
-                <a href="#" class="engine-card" id="yandexLink" target="_blank">
-                    <div class="engine-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div>Yandex Search</div>
-                </a>
-                <a href="#" class="engine-card" id="duckduckgoLink" target="_blank">
-                    <div class="engine-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div>DuckDuckGo</div>
-                </a>
-                 <a href="#" class="engine-card" id="shodanLink" target="_blank">
-                    <div class="engine-icon">
-                        <img src="https://www.shodan.io/favicon.ico" alt="Shodan Icon" style="width: 2rem; height: 2rem; margin-bottom: 0.5rem;">
-                    </div>
-                    <div>Shodan.io</div>
-                </a>
-                <a href="#" class="engine-card" id="censysLink" target="_blank">
-                    <div class="engine-icon">
-                        <img src="https://censys.io/static/images/favicon-32x32.png" alt="Censys Icon" style="width: 2rem; height: 2rem; margin-bottom: 0.5rem;">
-                    </div>
-                    <div>Censys.io</div>
-                </a>
-            </div>
-        </div>
-
         <div class="whats-new">
             <h3>What's New in DorkMaster Pro v2.0</h3>
             <div class="feature-grid">
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-enhanced-builder">
                     <i class="fas fa-cogs"></i>
                     <h4>Enhanced Query Builder</h4>
                     <p>More intuitive interface and granular control over search parameters for precise dork creation.</p>
                 </div>
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-expanded-templates">
                     <i class="fas fa-list-alt"></i>
                     <h4>Expanded Template Library</h4>
                     <p>New categories and over 50 new pre-built dorks for common vulnerability types and data exposures.</p>
                 </div>
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-dynamic-theme">
                     <i class="fas fa-sun"></i>
                     <h4>Dynamic Theme Switching</h4>
                     <p>Seamlessly switch between elegant Dark and bright Light modes for optimal viewing comfort in any environment.</p>
                 </div>
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-advanced-operators">
                     <i class="fas fa-keyboard"></i>
                     <h4>Advanced Operator Insertion</h4>
                     <p>Quickly add complex search operators directly into your manual queries for Google, Shodan, and Censys.</p>
                 </div>
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-shodan-censys">
                     <i class="fas fa-link"></i>
                     <h4>Shodan & Censys Integration</h4>
                     <p>Direct search links and tailored query support for specialized IoT and Internet scanning engines.</p>
                 </div>
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-saved-queries">
                     <i class="fas fa-bookmark"></i>
                     <h4>Improved Saved Queries Management</h4>
                     <p>Better organization with categories, quick load, and delete options for your frequently used dorks.</p>
                 </div>
-                <div class="feature-item">
+                <div class="feature-item" id="whats-new-enterprise-features">
                     <i class="fas fa-rocket"></i>
                     <h4>Conceptual Enterprise Features</h4>
                     <p>Preview of upcoming advanced capabilities including proxy integration, cloud API connectivity, and team collaboration.</p>
@@ -1607,6 +1705,23 @@
         </div>
 
         <section class="info-sections">
+            <div class="info-section-controls">
+                <button class="btn btn-secondary btn-small" onclick="toggleAllInfoSections(true)"><i class="fas fa-plus-square"></i> Expand All</button>
+                <button class="btn btn-secondary btn-small" onclick="toggleAllInfoSections(false)"><i class="fas fa-minus-square"></i> Collapse All</button>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-header" onclick="toggleInfoSection('about-tool-content')">
+                    <h3><i class="fas fa-info-circle"></i> About DorkMaster Pro</h3>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="info-card-content" id="about-tool-content">
+                    <p>DorkMaster Pro is an advanced web-based tool designed to assist cybersecurity professionals, penetration testers, and security researchers in efficiently performing Google Dorking, OSINT (Open Source Intelligence), and targeted asset discovery.</p>
+                    <p>It provides a streamlined interface to construct complex Google dorks, integrate with specialized search engines like Shodan and Censys, and manage a library of templates and saved queries.</p>
+                    <p>Our mission is to provide a powerful, ethical, and easy-to-use platform for uncovering publicly accessible information that could represent security vulnerabilities or misconfigurations. Always ensure you have explicit authorization before performing any scans or tests on external systems.</p>
+                </div>
+            </div>
+
             <div class="info-card">
                 <div class="info-card-header" onclick="toggleInfoSection('documentation-content')">
                     <h3><i class="fas fa-book"></i> Comprehensive Documentation</h3>
@@ -1694,7 +1809,7 @@
                         <i class="fas fa-comment-alt"></i>
                         <span>Feedback</span>
                     </a>
-                    <a href="https://github.com/YourGitHub" target="_blank" class="footer-btn github">
+                    <a href="https://github.com/w3bcooki3" target="_blank" class="footer-btn github">
                         <i class="fab fa-github"></i>
                         <span>GitHub</span>
                     </a>
@@ -1709,7 +1824,7 @@
                 
                 <div class="security-badge">
                     <i class="fas fa-shield-alt"></i>
-                    ENTERPRISE SECURED
+                    Securing systems
                 </div>
             </div>
         </div>
@@ -2007,10 +2122,17 @@
                 updateQueryPreview('censys');
             });
 
+            // Add event listener for global search bar 'Enter' key
+            document.getElementById('globalSearchBar').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    performGlobalSearch();
+                }
+            });
+
             // Initialize help system (tooltips)
             initializeHelp();
 
-            // Load saved theme
+            // Load saved theme (Default to dark mode if not set)
             const savedTheme = localStorage.getItem('dorkmaster_theme') || 'dark';
             document.body.classList.add(savedTheme + '-mode');
             updateThemeIcon(savedTheme);
@@ -2112,7 +2234,7 @@
                 'Web Applications': 'fas fa-globe',
                 'Data & Databases': 'fas fa-database',
                 'Cloud Services': 'fas fa-cloud',
-                'Source Code': 'fas fa-code-branch',
+                'Source Code': 'fab fa-git-alt',
                 'IoT & Devices': 'fas fa-wifi',
                 'Shodan Specific': 'fas fa-fingerprint',
                 'Censys Specific': 'fas fa-server'
@@ -2276,17 +2398,39 @@
                 updateQueryPreview('google');
             } else if (engine === 'shodan') {
                 const shodanQuery = document.getElementById('manualShodanQuery').value.trim();
+                currentShodanQuery = shodanQuery;
+                updateQueryPreview('shodan');
+            } else if (engine === 'censys') {
+                const censysQuery = document.getElementById('manualCensysQuery').value.trim();
+                currentCensysQuery = censysQuery;
+                updateQueryPreview('censys');
+            }
+        }
+
+        function buildQueryAndRun(engine = 'google') {
+            if (engine === 'google') {
+                buildQuery('google'); 
+                if (currentGoogleQuery) {
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(currentGoogleQuery)}`, '_blank');
+                    showAlert('Google search initiated with your query!', 'success');
+                } else {
+                    showAlert('No Google query to run. Please build one first in Query Builder or enter in Manual Query.', 'warning');
+                }
+            } else if (engine === 'shodan') {
+                const shodanQuery = document.getElementById('manualShodanQuery').value.trim();
                 if (shodanQuery) {
                     window.open(`https://www.shodan.io/search?query=${encodeURIComponent(shodanQuery)}`, '_blank');
+                    showAlert('Shodan search initiated!', 'success');
                 } else {
-                    showAlert('Please enter a Shodan query.', 'warning');
+                    showAlert('Please enter a Shodan query in the manual query tab to search Shodan.', 'warning');
                 }
             } else if (engine === 'censys') {
                 const censysQuery = document.getElementById('manualCensysQuery').value.trim();
                 if (censysQuery) {
                     window.open(`https://search.censys.io/search?resource=hosts&query=${encodeURIComponent(censysQuery)}`, '_blank');
+                    showAlert('Censys search initiated!', 'success');
                 } else {
-                    showAlert('Please enter a Censys query.', 'warning');
+                    showAlert('Please enter a Censys query in the manual query tab to search Censys.', 'warning');
                 }
             }
         }
@@ -2357,11 +2501,29 @@
             document.getElementById('manualShodanQuery').value = '';
             document.getElementById('manualCensysQuery').value = '';
             document.getElementById('globalSearchBar').value = ''; /* Clear global search bar as well */
+            clearGlobalSearchResults(); // Clear global search results
             currentGoogleQuery = '';
             currentShodanQuery = '';
             currentCensysQuery = '';
             updateQueryPreview('google'); // Reset preview to Google
             showAlert('All fields cleared!', 'info');
+        }
+
+        function clearInputField(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = '';
+                // Trigger input event to update preview if it's a builder field
+                if (['site', 'filetype', 'searchTerms', 'customKeywords', 'inurl', 'intitle', 'exclude'].includes(fieldId)) {
+                    buildQuery('google');
+                } else if (fieldId === 'manualGoogleQuery' || fieldId === 'manualShodanQuery' || fieldId === 'manualCensysQuery') {
+                    // Manually clear the respective current query variables
+                    if (fieldId === 'manualGoogleQuery') currentGoogleQuery = '';
+                    if (fieldId === 'manualShodanQuery') currentShodanQuery = '';
+                    if (fieldId === 'manualCensysQuery') currentCensysQuery = '';
+                    updateQueryPreview(fieldId.replace('manual', '').replace('Query', '').toLowerCase());
+                }
+            }
         }
 
         function saveQuery() {
@@ -2399,12 +2561,12 @@
                 }
             }
 
-            if (!queryToSave || queryToSave === 'Build a query or select a template to see the preview here...') {
+            if (!queryToSave || queryToSave === 'Build a query or select a template to see the preview here...' || queryToSave === 'Select a template to preview its query...') {
                 showAlert('Please build or enter a query first to save.', 'warning');
                 return;
             }
             
-            const queryName = prompt('Enter a descriptive name for this query:');
+            const queryName = prompt('Enter a descriptive name for this query:', queryToSave.substring(0, 30)); // Pre-fill with a snippet
             if (queryName) {
                 const category = prompt('Enter a category for this query (e.g., "Web App", "Cloud", "My Projects"). Leave blank for "Uncategorized".', 'Uncategorized');
                 
@@ -2446,7 +2608,7 @@
             const allCategoryItem = document.createElement('li');
             const allCategoryButton = document.createElement('button');
             allCategoryButton.textContent = 'All Categories';
-            allCategoryButton.className = 'active';
+            allCategoryButton.className = 'active'; // Make "All" active by default
             allCategoryButton.onclick = () => loadSavedQueries('All');
             allCategoryItem.appendChild(allCategoryButton);
             categoryList.appendChild(allCategoryItem);
@@ -2527,6 +2689,9 @@
                         <button class="btn btn-secondary btn-small" onclick="loadSavedQueryToField('${saved.id}')" title="Load to query field">
                             <i class="fas fa-edit"></i>
                         </button>
+                        <button class="btn btn-secondary btn-small" onclick="copySpecificQuery('${saved.query}')" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
                         <button class="btn btn-secondary btn-small" onclick="executeSavedQuery('${saved.id}')" title="Execute Search">
                             <i class="fas fa-play"></i>
                         </button>
@@ -2546,53 +2711,6 @@
             loadSavedQueries(currentCategory);
         }
 
-
-        function loadSavedQueryToField(queryId) {
-            const saved = savedQueries.find(q => q.id == queryId);
-            if (saved) {
-                switchTab('manual');
-                document.getElementById('manualGoogleQuery').value = '';
-                document.getElementById('manualShodanQuery').value = '';
-                document.getElementById('manualCensysQuery').value = '';
-
-                if (saved.type === 'shodan') {
-                    document.getElementById('manualShodanQuery').value = saved.query;
-                    currentShodanQuery = saved.query;
-                    updateQueryPreview('shodan');
-                } else if (saved.type === 'censys') {
-                    document.getElementById('manualCensysQuery').value = saved.query;
-                    currentCensysQuery = saved.query;
-                    updateQueryPreview('censys');
-                } else { // Default to Google
-                    document.getElementById('manualGoogleQuery').value = saved.query;
-                    currentGoogleQuery = saved.query;
-                    updateQueryPreview('google');
-                }
-                showAlert('Query loaded to manual builder!', 'info');
-            }
-        }
-
-        function executeSavedQuery(queryId) {
-            const saved = savedQueries.find(q => q.id == queryId);
-            if (!saved) return;
-
-            if (saved.type === 'shodan') {
-                window.open(`https://www.shodan.io/search?query=${encodeURIComponent(saved.query)}`, '_blank');
-            } else if (saved.type === 'censys') {
-                window.open(`https://search.censys.io/search?resource=hosts&query=${encodeURIComponent(saved.query)}`, '_blank');
-            } else { // Default to Google for generic searches
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(saved.query)}`, '_blank');
-            }
-        }
-
-        function deleteSavedQuery(queryId) {
-            if (confirm('Are you sure you want to delete this saved query?')) {
-                savedQueries = savedQueries.filter(q => q.id != queryId);
-                localStorage.setItem('dorkQueries', JSON.stringify(savedQueries)); // Update localStorage
-                loadSavedQueries(document.querySelector('#savedQueryCategoryList button.active').textContent.trim().replace('All Categories', 'All'));
-                showAlert('Query deleted!', 'success');
-            }
-        }
 
         // Advanced query operator insertion
         function insertOperator(targetFieldId, operator) {
@@ -2730,19 +2848,19 @@
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // Ctrl/Cmd + Enter to build query
+            // Ctrl/Cmd + Enter to build query (and run if Google)
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
                 const currentTab = document.querySelector('.tabs .tab.active').textContent.trim();
                 if (currentTab === 'Query Builder') {
-                    buildQuery('google');
+                    buildQueryAndRun('google'); // Call the function that builds and runs
                 } else if (currentTab === 'Manual Query') {
                     if (document.getElementById('manualGoogleQuery').value.trim()) {
-                        buildQuery('google');
+                        buildQueryAndRun('google');
                     } else if (document.getElementById('manualShodanQuery').value.trim()) {
-                        buildQuery('shodan');
+                        buildQueryAndRun('shodan'); 
                     } else if (document.getElementById('manualCensysQuery').value.trim()) {
-                        buildQuery('censys');
+                        buildQueryAndRun('censys'); 
                     }
                 }
             }
@@ -2767,26 +2885,10 @@
 
         // Copy query to clipboard
         function copyQuery() {
-            let queryToCopy = '';
-            const currentTab = document.querySelector('.tabs .tab.active').textContent.trim();
-
-            if (currentTab === 'Query Builder') {
-                queryToCopy = currentGoogleQuery;
-            } else if (currentTab === 'Manual Query') {
-                if (document.getElementById('manualGoogleQuery').value.trim()) {
-                    queryToCopy = document.getElementById('manualGoogleQuery').value.trim();
-                } else if (document.getElementById('manualShodanQuery').value.trim()) {
-                    queryToCopy = document.getElementById('manualShodanQuery').value.trim();
-                } else if (document.getElementById('manualCensysQuery').value.trim()) {
-                    queryToCopy = document.getElementById('manualCensysQuery').value.trim();
-                }
-            } else { // Templates tab or Saved Queries tab
-                queryToCopy = document.getElementById('queryPreview').textContent.trim();
-            }
-
+            let queryToCopy = document.getElementById('queryPreview').textContent.trim();
 
             if (!queryToCopy || queryToCopy === 'Build a query or select a template to see the preview here...' || queryToCopy === 'Select a template to preview its query...') {
-                showAlert('No query to copy', 'warning');
+                showAlert('No query to copy from preview', 'warning');
                 return;
             }
             
@@ -2796,6 +2898,24 @@
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
                 textArea.value = queryToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('Query copied to clipboard (fallback)!', 'success');
+            });
+        }
+
+        function copySpecificQuery(queryText) {
+             if (!queryText) {
+                showAlert('Cannot copy empty query.', 'warning');
+                return;
+            }
+            navigator.clipboard.writeText(queryText).then(() => {
+                showAlert('Query copied to clipboard!', 'success');
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = queryText;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
@@ -2852,48 +2972,166 @@
         }
 
         function performGlobalSearch() {
-            const globalQuery = document.getElementById('globalSearchBar').value.trim();
+            const globalQuery = document.getElementById('globalSearchBar').value.trim().toLowerCase();
+            const resultsContainer = document.getElementById('globalSearchResultsContent');
+            const resultsSection = document.getElementById('globalSearchResults');
+            resultsContainer.innerHTML = ''; // Clear previous results
+
             if (!globalQuery) {
-                showAlert('Please enter a query in the global search bar.', 'warning');
+                showAlert('Please enter a query in the global search bar for internal search.', 'warning');
+                resultsSection.classList.remove('active');
                 return;
             }
 
-            // For now, let's just open a new Google search tab.
-            // In a real application, you might offer options to search across all engines,
-            // or have a more sophisticated logic to decide which engine to use.
-            window.open(`https://www.google.com/search?q=${encodeURIComponent(globalQuery)}`, '_blank');
-            showAlert(`Searching "${globalQuery}" on Google...`, 'info');
+            let foundResults = [];
+
+            // Helper function to highlight text
+            const highlightText = (text, query) => {
+                if (!text) return '';
+                const regex = new RegExp(`(${query})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            };
+
+            // 1. Search in "What's New" features
+            document.querySelectorAll('.whats-new .feature-item').forEach(item => {
+                const title = item.querySelector('h4').textContent;
+                const description = item.querySelector('p').textContent;
+                if (title.toLowerCase().includes(globalQuery) || description.toLowerCase().includes(globalQuery)) {
+                    foundResults.push({
+                        type: 'What\'s New Feature',
+                        title: title,
+                        description: description,
+                        elementId: item.id // To potentially scroll to it
+                    });
+                }
+            });
+
+            // 2. Search in "Info Sections" (Documentation, Best Practices, Legal, About)
+            document.querySelectorAll('.info-card').forEach(card => {
+                const headerTitle = card.querySelector('.info-card-header h3').textContent;
+                const contentText = card.querySelector('.info-card-content').textContent;
+                if (headerTitle.toLowerCase().includes(globalQuery) || contentText.toLowerCase().includes(globalQuery)) {
+                     foundResults.push({
+                        type: 'Info Section',
+                        title: headerTitle,
+                        description: contentText.substring(0, 150) + '...', // Truncate for display
+                        elementId: card.querySelector('.info-card-content').id
+                    });
+                }
+            });
+
+            // 3. Search in Templates
+            Object.values(templates).forEach(template => {
+                if (template.title.toLowerCase().includes(globalQuery) || 
+                    template.description.toLowerCase().includes(globalQuery) ||
+                    template.queries.some(q => q.toLowerCase().includes(globalQuery))) {
+                    foundResults.push({
+                        type: 'Template',
+                        title: template.title,
+                        description: template.description,
+                        query: template.queries[0]
+                    });
+                }
+            });
+
+            // 4. Search in Saved Queries (name and query)
+            savedQueries.forEach(saved => {
+                if (saved.name.toLowerCase().includes(globalQuery) || saved.query.toLowerCase().includes(globalQuery)) {
+                    foundResults.push({
+                        type: 'Saved Query',
+                        title: saved.name,
+                        description: saved.query
+                    });
+                }
+            });
+
+            if (foundResults.length > 0) {
+                resultsSection.classList.add('active'); // Show results section
+                foundResults.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    let descriptionText = result.description;
+                    if (result.query) {
+                        descriptionText += ` (Query: ${result.query})`;
+                    }
+                    
+                    const highlightedTitle = highlightText(result.title, globalQuery);
+                    const highlightedDescription = highlightText(descriptionText, globalQuery);
+
+
+                    resultItem.innerHTML = `
+                        <h4><i class="fas fa-tag"></i> ${result.type}: ${highlightedTitle}</h4>
+                        <p>${highlightedDescription}</p>
+                    `;
+                    // Optional: Add a click handler to scroll to the element if it has an ID
+                    if (result.elementId) {
+                        resultItem.style.cursor = 'pointer';
+                        resultItem.onclick = () => {
+                            const targetElement = document.getElementById(result.elementId);
+                            if (targetElement) {
+                                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                // Optionally expand the info card if it's collapsed
+                                if (targetElement.classList.contains('info-card-content') && !targetElement.classList.contains('expanded')) {
+                                    toggleInfoSection(result.elementId);
+                                }
+                            }
+                        };
+                    }
+                    resultsContainer.appendChild(resultItem);
+                });
+                showAlert(`Found ${foundResults.length} relevant results within DorkMaster Pro.`, 'success');
+            } else {
+                resultsSection.classList.remove('active');
+                showAlert('No internal results found. Try a more general term.', 'info');
+            }
+        }
+
+        function clearGlobalSearchResults() {
+            document.getElementById('globalSearchResultsContent').innerHTML = '';
+            document.getElementById('globalSearchResults').classList.remove('active');
+            document.getElementById('globalSearchBar').value = '';
+            showAlert('Local search results cleared.', 'info');
         }
 
         function toggleInfoSection(contentId) {
             const content = document.getElementById(contentId);
-            const header = content.previousElementSibling; // The header is the sibling before the content
+            const header = content.previousElementSibling; 
             
             if (content.classList.contains('expanded')) {
                 content.classList.remove('expanded');
                 header.classList.remove('expanded');
             } else {
-                // Optional: Collapse other open sections
-                document.querySelectorAll('.info-card-content.expanded').forEach(openContent => {
-                    openContent.classList.remove('expanded');
-                    openContent.previousElementSibling.classList.remove('expanded');
-                });
-
                 content.classList.add('expanded');
                 header.classList.add('expanded');
             }
         }
+
+        function toggleAllInfoSections(expand) {
+            document.querySelectorAll('.info-card-content').forEach(content => {
+                const header = content.previousElementSibling;
+                if (expand) {
+                    content.classList.add('expanded');
+                    header.classList.add('expanded');
+                } else {
+                    content.classList.remove('expanded');
+                    header.classList.remove('expanded');
+                }
+            });
+            showAlert(expand ? 'All info sections expanded.' : 'All info sections collapsed.', 'info');
+        }
     </script>
     <script>
-        // Theme Toggle
+        // Theme Toggle (re-added to ensure it's complete)
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
             const icon = document.getElementById('theme-icon');
             if (document.body.classList.contains('light-mode')) {
-                icon.className = 'fas fa-sun';
+                icon.className = 'fas fa-moon'; 
             } else {
-                icon.className = 'fas fa-moon';
+                icon.className = 'fas fa-sun'; 
             }
+            const savedTheme = localStorage.getItem('dorkmaster_theme') || 'dark';
+            updateThemeIcon(savedTheme);
         }
 
         // Floating Particles Effect
@@ -2940,16 +3178,18 @@
         // Initialize typing effect on load
         window.addEventListener('load', function() {
             const description = document.querySelector('.footer-description');
-            const originalText = '🛡️ Enterprise-grade Google Dorking platform for authorized security research and OSINT operations';
-            setTimeout(() => {
-                typeWriter(description, originalText, 50);
-            }, 1000);
+            const originalText = 'Enterprise-grade Google Dorking platform for authorized security research and OSINT operations';
+            if (description && description.textContent.includes('Enterprise-grade Google Dorking platform')) {
+                 setTimeout(() => {
+                    typeWriter(description, originalText, 50);
+                }, 1000);
+            }
+           
         });
 
-        // Add hover sound effect simulation
+        // Add hover sound effect simulation (visual feedback instead of actual sound)
         document.querySelectorAll('.footer-btn').forEach(btn => {
             btn.addEventListener('mouseenter', function() {
-                // Visual feedback for "cyber" feel
                 this.style.filter = 'brightness(1.1)';
             });
             
