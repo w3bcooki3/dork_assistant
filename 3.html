@@ -1,0 +1,4010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dork Assistant - Advanced Security Research Tool</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Modern Reset & Box Sizing */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Root Variables for Theming */
+        :root {
+            --primary: #0f172a; /* Deep Charcoal Blue */
+            --secondary: #1e293b; /* Medium Charcoal Blue */
+            --accent: #00bfff; /* Deep Sky Blue (Radiant) */
+            --accent-hover: #009acd; /* Darker Deep Sky Blue */
+            --success: #10b981; /* Emerald Green */
+            --warning: #f59e0b; /* Amber Yellow */
+            --danger: #ef4444; /* Fiery Red */
+            --text: #f1f5f9; /* Near-White */
+            --text-muted: #94a3b8; /* Muted Blue-Gray */
+            --border: #334155; /* Slate Gray */
+            --bg-card: #1e293b; /* Card background matches secondary */
+            --gradient: linear-gradient(135deg, #00bfff 0%, #1e90ff 100%); /* Blue gradient */
+            --glow-color: #00bfff; /* For radiant glow */
+            --input-bg-focus: #28374d; /* Slightly lighter input background on focus */
+            --button-shadow: rgba(0,191,255,0.4);
+            --card-hover-shadow: rgba(0,191,255,0.4);
+            --shadow-primary: rgba(0,0,0,0.4); /* General shadow for depth */
+            --shadow-secondary: rgba(0,0,0,0.2); /* Lighter shadow */
+        }
+
+        /* Light Mode Variables */
+        body.light-mode {
+            --primary: #ffffff;
+            --secondary: #f0f4f8;
+            --accent: #1a73e8; /* Google Blue */
+            --accent-hover: #155bb5;
+            --success: #1e8e3e;
+            --warning: #e37400;
+            --danger: #d93025;
+            --text: #202124;
+            --text-muted: #5f6368;
+            --border: #dadce0;
+            --bg-card: #ffffff;
+            --gradient: linear-gradient(135deg, #4285f4 0%, #34a853 100%); /* Google colors */
+            --glow-color: #1a73e8;
+            --input-bg-focus: #e8f0fe;
+            --button-shadow: rgba(26,115,232,0.4);
+            --card-hover-shadow: rgba(26,115,232,0.4);
+            --shadow-primary: rgba(0,0,0,0.1);
+            --shadow-secondary: rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease; /* Smoother theme transition */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            background: var(--gradient);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px var(--shadow-primary);
+            position: sticky;
+            top: 0;
+            z-index: 1000; /* Ensure header is on top */
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.6rem; /* Slightly larger */
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 8px rgba(255,255,255,0.6);
+            transition: text-shadow 0.3s ease;
+        }
+        .logo:hover {
+            text-shadow: 0 0 12px rgba(255,255,255,0.8);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 25px; /* More spacing */
+            list-style: none;
+            align-items: center; /* Align items vertically */
+            transition: all 0.3s ease-in-out; /* Smooth transition for mobile menu */
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px; /* More padding */
+            border-radius: 8px; /* Slightly more rounded */
+            transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease, text-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        /* Refined nav-link hover effect */
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 100%;
+            height: 3px; /* Thin underline */
+            background: white; /* White underline */
+            border-radius: 2px 2px 0 0;
+            transition: transform 0.3s ease-out;
+            z-index: -1; /* Keep text on top */
+        }
+
+        .nav-link:hover::before {
+            transform: translateX(-50%) scaleX(1); /* Expand from center */
+        }
+
+        .nav-link:hover {
+            color: white; /* Keep color white, accent glow */
+            background: rgba(255,255,255,0.15); /* Slightly more visible hover background */
+            text-shadow: 0 0 10px var(--glow-color); /* Stronger accent glow */
+            transform: translateY(-2px); /* Subtle lift */
+        }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.1); /* Subtle background */
+            border: 1px solid rgba(255,255,255,0.3); /* Subtle border */
+            color: white;
+            font-size: 1.3rem; /* Slightly larger icon */
+            cursor: pointer;
+            padding: 10px; /* More padding for click area */
+            border-radius: 50%;
+            transition: background 0.3s ease, transform 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.25);
+            transform: rotate(30deg) scale(1.05); /* Enhanced hover effect */
+            color: var(--accent); /* Change icon color to accent on hover */
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        /* Main Content */
+        .main {
+            flex-grow: 1; /* Allows main content to take available space */
+            padding: 2.5rem 0; /* More vertical padding */
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem; /* More spacing */
+            padding: 2rem 0; /* Add internal padding */
+        }
+
+        .hero h1 {
+            font-size: 3rem; /* Larger hero title */
+            margin-bottom: 1.2rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0,255,255,0.8); /* Stronger cyan glow */
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.15rem; /* Slightly larger paragraph */
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Global Search Bar */
+        .global-search-bar {
+            margin-top: 3rem; /* More space */
+            display: flex;
+            justify-content: center;
+            gap: 15px; /* More spacing between input and button */
+            width: 100%;
+            flex-wrap: wrap; /* Allow wrap for responsiveness */
+        }
+
+        .global-search-bar .form-input {
+            flex-grow: 1; /* Allow input to grow */
+            max-width: 800px; /* Wider search bar */
+            padding: 16px 25px; /* More padding */
+            font-size: 1.2rem;
+            border-radius: 12px; /* More rounded */
+            box-shadow: inset 0 1px 5px var(--shadow-secondary); /* Subtle inner shadow */
+        }
+
+        .global-search-bar .btn-primary {
+            padding: 16px 35px; /* More padding */
+            font-size: 1.1rem;
+            border-radius: 12px;
+        }
+
+        /* Search Interface */
+        .search-interface {
+            display: grid;
+            grid-template-columns: 1fr 350px; /* Sidebar slightly wider */
+            gap: 2.5rem; /* More spacing */
+            margin-bottom: 2rem;
+            align-items: start;
+        }
+
+        .search-main, .search-sidebar, .whats-new, .results-section, .info-card, #globalSearchResults, .specialized-search-section {
+            background: var(--bg-card);
+            border-radius: 16px; /* More rounded corners */
+            padding: 2.5rem; /* More internal padding */
+            border: 1px solid var(--border);
+            box-shadow: 0 5px 20px var(--shadow-primary), 0 0 25px rgba(0,191,255,0.15); /* Enhanced default shadow/glow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+        }
+
+        /* Enhanced hover for main sections */
+        .search-main:hover, .search-sidebar:hover, .whats-new:hover, .results-section:hover, .info-card:hover, #globalSearchResults.active, .specialized-search-section:hover {
+            transform: translateY(-5px); /* Subtle lift on hover */
+            box-shadow: 0 15px 40px var(--shadow-primary), 0 0 40px rgba(0,191,255,0.5); /* Stronger shadow/glow on hover */
+            border-color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem; /* More spacing between form groups */
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.6rem; /* More space below label */
+            font-weight: 600;
+            color: var(--text);
+            transition: color 0.3s ease;
+            font-size: 1.05rem;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 14px; /* More padding */
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 10px; /* More rounded */
+            color: var(--text);
+            font-size: 15px;
+            transition: border-color 0.3s, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: inset 0 1px 3px var(--shadow-secondary);
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--input-bg-focus); /* Subtle background change on focus */
+            box-shadow: 0 0 0 4px rgba(0,191,255,0.3), inset 0 1px 3px var(--shadow-secondary); /* Enhanced focus glow */
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px; /* Min height for text areas */
+        }
+        
+        .btn {
+            padding: 14px 28px; /* More padding */
+            border: none;
+            border-radius: 10px; /* More rounded */
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center; /* Center content in button */
+            gap: 10px; /* More spacing for icon */
+            transition: all 0.3s ease;
+            font-size: 15px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 5px 15px var(--button-shadow); /* Stronger shadow */
+        }
+
+        /* Refined btn-primary hover effect */
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2); /* Subtle overlay */
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-primary:hover::before {
+            transform: scaleX(1); /* Simple fill from center */
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-3px); /* Stronger lift */
+            box-shadow: 0 8px 25px var(--button-shadow); /* Stronger shadow on hover */
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: 0 3px 10px var(--shadow-secondary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            border-color: var(--accent);
+            box-shadow: 0 5px 20px rgba(0,191,255,0.3);
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px; /* More spacing */
+            flex-wrap: wrap;
+            margin-top: 1.8rem; /* More spacing */
+        }
+
+        /* Dork Templates */
+        .dork-templates {
+            margin-bottom: 2.5rem;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* More responsive columns */
+            gap: 1.5rem; /* More spacing */
+            margin-top: 1.5rem;
+        }
+
+        .template-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 12px; /* More rounded */
+            padding: 1.5rem; /* More padding */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,191,255,0.1);
+        }
+
+        .template-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px); /* Stronger lift */
+            box-shadow: 0 8px 25px var(--card-hover-shadow);
+            background: var(--secondary);
+        }
+
+        .template-title {
+            font-weight: 700; /* Bolder title */
+            margin-bottom: 0.6rem;
+            color: var(--accent);
+            font-size: 1.15rem;
+        }
+
+        .template-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+        }
+
+        .template-query {
+            font-family: 'Fira Code', 'Courier New', monospace; /* Fira Code for a dev feel */
+            font-size: 0.85rem;
+            background: var(--secondary);
+            padding: 10px; /* More padding */
+            border-radius: 6px;
+            color: var(--success);
+            word-break: break-all;
+            white-space: pre-wrap; /* Preserve whitespace and break lines */
+            overflow-x: auto; /* Allow horizontal scroll for long queries */
+            border: 1px solid var(--border);
+        }
+
+        /* Results */
+        .results-section {
+            margin-top: 2.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem; /* More spacing */
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .query-preview {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: var(--primary);
+            padding: 1.5rem; /* More padding */
+            border-radius: 12px; /* More rounded */
+            border: 1px solid var(--border);
+            color: var(--success);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            word-break: break-all;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(0,191,255,0.15);
+        }
+        .query-preview:hover {
+            box-shadow: inset 0 0 20px rgba(0,191,255,0.4);
+        }
+
+        .search-engines {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Adjusted for more flexibility */
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .engine-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,191,255,0.1);
+        }
+
+        .engine-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--card-hover-shadow);
+            background: var(--secondary);
+            color: var(--accent); /* Change text color on hover */
+        }
+
+        .engine-icon {
+            font-size: 2.5rem; /* Larger icon */
+            margin-bottom: 0.8rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(0,191,255,0.6); /* Icon glow */
+        }
+        .engine-card img {
+            filter: drop-shadow(0 0 8px rgba(0,191,255,0.6)); /* Icon glow for images */
+            width: 40px; /* Ensure image icons are appropriately sized */
+            height: 40px;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            border-top: 2px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+            margin-top: 60px; /* More space above footer */
+            box-shadow: 0 -8px 30px var(--shadow-primary);
+            flex-shrink: 0; /* Prevent footer from shrinking */
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 3px; /* Slightly thicker scan line */
+            background: linear-gradient(90deg, transparent, var(--accent), var(--success), transparent);
+            animation: scanLine 5s infinite linear; /* Slower scan line */
+        }
+
+        @keyframes scanLine {
+            0% { left: -100%; opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { left: 100%; opacity: 0.5; }
+        }
+
+        .footer-content {
+            padding: 50px 0; /* More padding */
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .footer-title {
+            font-size: 3rem; /* Larger footer title */
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 15px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 15px rgba(0,191,255,0.9); /* Stronger glow */
+        }
+
+        .footer-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px; /* Adjusted position */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px; /* Wider pulse */
+            height: 4px; /* Thicker pulse */
+            background: var(--accent);
+            border-radius: 2px;
+            animation: pulse 2.5s infinite ease-in-out; /* Smoother pulse */
+        }
+
+        @keyframes pulse {
+            0%, 100% { width: 80px; opacity: 1; }
+            50% { width: 100px; opacity: 0.8; }
+        }
+
+        .footer-description {
+            font-size: 1.15rem; /* Larger description */
+            color: var(--text-muted);
+            margin-bottom: 40px; /* More spacing */
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 25px; /* More spacing between buttons */
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .footer-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 14px 28px; /* More padding */
+            background: rgba(255, 255, 255, 0.08); /* More visible subtle background */
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px); /* More blur */
+            box-shadow: 0 5px 15px var(--shadow-primary);
+            z-index: 1;
+        }
+
+        .footer-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            transition: left 0.4s ease;
+            z-index: -1;
+            opacity: 0; /* Hidden by default */
+        }
+
+        .footer-btn:hover::before {
+            left: 0;
+            opacity: 1; /* Fully visible on hover */
+        }
+
+        .footer-btn:hover {
+            transform: translateY(-5px); /* Stronger lift */
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,191,255,0.6); /* Enhanced hover glow */
+            color: white; /* Text turns white when gradient fills */
+        }
+
+        .footer-btn i {
+            margin-right: 10px; /* More space for icon */
+            font-size: 1.2rem; /* Larger icon */
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .footer-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-btn:hover i {
+            transform: scale(1.15) rotate(5deg); /* More pronounced icon effect */
+            color: white; /* Ensure icon also turns white */
+        }
+
+        /* Specific footer button colors adjusted to match new accent */
+        .footer-btn.github {
+            background: rgba(36, 41, 47, 0.8);
+            border-color: #30363d;
+        }
+        .footer-btn.github:hover {
+            background: #238636; /* GitHub green */
+            border-color: #238636;
+        }
+
+        .footer-btn.support {
+            background: rgba(0,191,255, 0.15); /* Lighter accent */
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .footer-btn.support:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .footer-btn.bug {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .footer-btn.bug:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .footer-btn.feedback {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+        .footer-btn.feedback:hover {
+            background: var(--warning);
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding: 25px 0; /* More padding */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .copyright {
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            background: rgba(16, 185, 129, 0.15); /* More visible background */
+            color: var(--success);
+            padding: 10px 20px; /* More padding */
+            border-radius: 25px; /* More rounded */
+            border: 1px solid var(--success);
+            font-size: 13px;
+            font-weight: 600;
+            animation: securityPulse 3.5s infinite ease-in-out; /* Slower, smoother pulse */
+        }
+
+        @keyframes securityPulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); /* Stronger initial glow */
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); /* Wider, fading pulse */
+                transform: scale(1.03); /* Subtle scale effect */
+            }
+        }
+
+        .security-badge i {
+            margin-right: 8px;
+            animation: lockRotate 5s ease-in-out infinite; /* Slower rotation */
+        }
+
+        @keyframes lockRotate {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg); }
+            75% { transform: rotate(8deg); }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 25px; /* Adjusted position */
+            right: 25px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px; /* Square with rounded corners */
+            padding: 12px; /* More padding */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 5px 15px var(--shadow-primary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(180deg) scale(1.05); /* Enhanced hover */
+            box-shadow: 0 8px 20px var(--glow-color);
+        }
+
+        .floating-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0; /* Ensure particles are behind content */
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px; /* Slightly larger particles */
+            height: 3px;
+            background: var(--glow-color);
+            border-radius: 50%;
+            opacity: 0.7; /* Slightly more visible */
+            animation: float 10s infinite linear; /* Slower float */
+            box-shadow: 0 0 8px var(--glow-color); /* Stronger particle glow */
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-50px) translateX(150px) rotate(360deg); /* Longer travel, subtle X movement */
+                opacity: 0;
+            }
+        }
+
+        .typing-cursor {
+            animation: blink 1s step-end infinite; /* Step-end for block cursor */
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Responsive adjustments for footer */
+        @media (max-width: 768px) {
+            .footer-title {
+                font-size: 2.2rem;
+            }
+            
+            .footer-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .footer-btn {
+                min-width: 240px; /* Ensure buttons are readable */
+                justify-content: center;
+            }
+            
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+            .copyright, .security-badge {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .footer-title {
+                font-size: 1.8rem;
+            }
+            
+            .footer-description {
+                font-size: 1rem;
+                padding: 0 10px;
+            }
+        }
+
+        /* Saved Queries */
+        .saved-queries {
+            margin-top: 1.5rem;
+        }
+
+        .saved-item {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px; /* More rounded */
+            padding: 1rem; /* More padding */
+            margin-bottom: 0.8rem; /* More spacing */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(0,191,255,0.08); /* Subtle shadow */
+            flex-wrap: wrap; /* Allow wrapping of content and buttons */
+            gap: 10px; /* Gap for wrapped items */
+        }
+
+        .saved-item:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0,191,255,0.3);
+            background: var(--secondary);
+            transform: translateY(-2px); /* Subtle lift */
+        }
+
+        .saved-query {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--success);
+            flex-grow: 1;
+            margin-right: 15px; /* More space */
+            word-break: break-all;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .btn-small {
+            padding: 6px 12px; /* Adjusted padding */
+            font-size: 0.8rem;
+            border-radius: 6px;
+            gap: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) { /* Adjusted breakpoint for larger tablets */
+            .search-interface {
+                grid-template-columns: 1fr; /* Stack main and sidebar */
+            }
+            .search-sidebar {
+                order: -1; /* Move sidebar above main content on smaller screens */
+                margin-bottom: 2.5rem;
+            }
+            .global-search-bar .form-input {
+                width: 90%;
+            }
+            .global-search-bar .btn-primary {
+                width: 90%;
+                max-width: 400px;
+            }
+            .nav-menu {
+                display: none; /* Hide by default on small screens */
+            }
+            .mobile-menu-toggle {
+                display: block; /* Show toggle button */
+            }
+            .header .container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .main {
+                padding: 2rem 0;
+            }
+            .template-grid {
+                grid-template-columns: 1fr;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .theme-toggle {
+                top: 15px;
+                right: 15px;
+                padding: 8px;
+            }
+            .saved-item > div:first-child {
+                flex-basis: 100%; /* Ensure text wraps above buttons */
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+            .saved-item > div:last-child {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .global-search-bar .form-input, .global-search-bar .btn-primary {
+                width: 100%;
+            }
+            .btn-group .btn {
+                width: 100%;
+            }
+            .engine-card {
+                padding: 1rem;
+            }
+            .engine-icon {
+                font-size: 2rem;
+            }
+            .tabs {
+                flex-direction: column;
+                border-bottom: none;
+            }
+            .tab {
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 5px;
+            }
+            .tab.active {
+                border-bottom: 2px solid var(--accent);
+            }
+            #templates.tab-content.active, #saved-tab-content.tab-content.active {
+                flex-direction: column;
+            }
+            .template-categories-sidebar, .saved-queries-sidebar {
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        .mobile-menu-toggle {
+            display: none; /* Hidden by default for desktop */
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .mobile-menu-toggle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Mobile Menu specific styles */
+        .nav-menu.mobile-active {
+            display: flex;
+            position: absolute;
+            top: 100%; /* Position right below the header */
+            left: 0;
+            right: 0;
+            background: var(--secondary);
+            flex-direction: column;
+            padding: 1rem 0;
+            box-shadow: 0 8px 25px var(--shadow-primary);
+            transform: translateY(0); /* Ensure it's visible */
+            opacity: 1;
+            visibility: visible;
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out; /* Smooth slide-down */
+            z-index: 999;
+        }
+
+        .nav-menu.mobile-active li {
+            width: 100%;
+            text-align: center;
+        }
+        .nav-menu.mobile-active .nav-link {
+            display: block; /* Make links full width */
+            padding: 15px 0; /* More padding */
+            border-radius: 0;
+            background: none; /* Remove background for list items */
+        }
+        .nav-menu.mobile-active .nav-link:hover {
+            background: var(--primary); /* Hover for mobile links */
+            color: var(--accent);
+            text-shadow: none;
+            transform: none;
+        }
+        .nav-menu.mobile-active .nav-link::before {
+            display: none; /* Hide underline effect for mobile */
+        }
+        /* Keep theme toggle within the mobile menu if active */
+        .nav-menu.mobile-active .theme-toggle {
+            position: static; /* Remove fixed positioning */
+            margin: 1rem auto; /* Center it */
+            color: var(--text);
+            background: var(--primary);
+            border-color: var(--border);
+            box-shadow: none;
+        }
+        .nav-menu.mobile-active .theme-toggle:hover {
+             background: var(--accent);
+             color: white;
+             transform: none;
+        }
+
+
+        /* Advanced Operators */
+        .advanced-operators {
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+        }
+
+        .advanced-operators h4 {
+            margin-bottom: 1.2rem;
+            color: var(--accent);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .operator-button {
+            padding: 10px 15px; /* More padding */
+            background: var(--secondary);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px; /* More rounded */
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 10px; /* More spacing */
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            white-space: nowrap; /* Prevent breaking lines */
+        }
+
+        .operator-button:hover {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 18px rgba(0,191,255,0.5);
+            transform: translateY(-2px); /* Subtle lift */
+        }
+
+        /* Enterprise features placeholder */
+        .enterprise-features {
+            margin-top: 2.5rem;
+        }
+
+        .enterprise-features h3 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            font-size: 1.6rem;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(0,191,255,0.4);
+        }
+
+        .feature-card {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,191,255,0.12);
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 25px rgba(0,191,255,0.45);
+            background: var(--secondary);
+            transform: translateY(-5px);
+        }
+
+        .feature-card h4 {
+            margin-bottom: 0.6rem;
+            color: var(--text);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feature-card h4 i {
+            color: var(--accent);
+            font-size: 1.3rem;
+            text-shadow: 0 0 5px rgba(0,191,255,0.3);
+        }
+
+        .feature-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        /* "What's New" Section */
+        .whats-new {
+            margin-top: 3.5rem; /* More spacing */
+        }
+
+        .whats-new h3 {
+            color: var(--accent);
+            margin-bottom: 2rem; /* More spacing */
+            text-align: center;
+            font-size: 2rem; /* Larger title */
+            position: relative;
+            text-shadow: 0 0 12px rgba(0,191,255,0.6);
+        }
+
+        .whats-new h3::after {
+            content: '';
+            display: block;
+            width: 80px; /* Wider underline */
+            height: 4px; /* Thicker underline */
+            background: var(--accent);
+            margin: 15px auto 0; /* More spacing */
+            border-radius: 2px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* More responsive columns */
+            gap: 2rem; /* More spacing */
+        }
+
+        .feature-item {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 14px; /* More rounded */
+            padding: 2rem; /* More padding */
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px var(--shadow-primary), 0 0 12px rgba(0,191,255,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to top */
+            min-height: 220px; /* Ensure consistent height */
+        }
+
+        .feature-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-8px); /* Stronger lift */
+            box-shadow: 0 12px 30px var(--shadow-primary), 0 0 30px rgba(0,191,255,0.5);
+            background: var(--secondary);
+        }
+
+        .feature-item i {
+            font-size: 3rem; /* Larger icon */
+            color: var(--accent);
+            margin-bottom: 1.2rem;
+            text-shadow: 0 0 15px rgba(0,191,255,0.7);
+        }
+
+        .feature-item h4 {
+            font-size: 1.3rem; /* Larger title */
+            color: var(--text);
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+
+        .feature-item p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Search input for templates and saved queries */
+        .search-input-group {
+            margin-bottom: 1.5rem; /* More spacing */
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input-group .form-input {
+            flex-grow: 1;
+        }
+
+        .add-category-btn {
+            background: var(--accent);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .add-category-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .saved-category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Original Tab and Template Category Styles */
+        .alert {
+            padding: 15px; /* More padding */
+            border-radius: 8px; /* More rounded */
+            margin-bottom: 2rem; /* More spacing */
+            border: 1px solid;
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            box-shadow: 0 0 12px var(--shadow-secondary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-info {
+            background: rgba(0,191,255, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem; /* More spacing */
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.3s ease;
+            flex-wrap: wrap; /* Allow tabs to wrap */
+        }
+
+        .tab {
+            padding: 12px 22px; /* More padding */
+            cursor: pointer;
+            border-bottom: 3px solid transparent; /* Thicker underline */
+            transition: all 0.3s ease;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 1.05rem;
+            flex-shrink: 0; /* Prevent shrinking on wrap */
+        }
+
+        .tab:hover {
+            color: var(--text); /* Darker text on hover */
+        }
+
+        .tab.active {
+            border-bottom-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(0,191,255,0.6);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Template Categories Sidebar */
+        .template-categories-sidebar, .saved-queries-sidebar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem; /* More padding */
+            margin-bottom: 1.5rem;
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            height: fit-content;
+            box-shadow: 0 0 12px rgba(0,191,255,0.15);
+        }
+        .template-categories-sidebar:hover, .saved-queries-sidebar:hover {
+            box-shadow: 0 0 25px rgba(0,191,255,0.35);
+            border-color: var(--accent);
+        }
+
+        .template-categories-sidebar h3, .saved-queries-sidebar h3 {
+            color: var(--accent);
+            margin-bottom: 1.5rem; /* More spacing */
+            text-shadow: 0 0 8px rgba(0,191,255,0.4);
+            font-size: 1.4rem;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .category-list li {
+            margin-bottom: 0.6rem; /* More spacing */
+        }
+
+        .category-list button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            padding: 10px 12px; /* More padding */
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px; /* More rounded */
+            display: flex;
+            align-items: center;
+            gap: 12px; /* More spacing for icon */
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .category-list button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .category-list button:hover,
+        .category-list button.active {
+            color: var(--accent);
+            transform: translateX(8px); /* More pronounced slide */
+            text-shadow: 0 0 8px rgba(0,191,255,0.3);
+        }
+        .category-list button.active {
+            background: rgba(0,191,255,0.1);
+            border: 1px solid var(--accent);
+        }
+        .category-list button:hover::before {
+            width: 100%;
+        }
+
+        /* Adjustments for the template tab content layout */
+        #templates.tab-content.active, #saved-tab-content.tab-content.active {
+            display: flex;
+            gap: 2.5rem; /* More spacing */
+        }
+
+        .template-main-content, .saved-main-content {
+            flex-grow: 1;
+        }
+
+        /* Custom Alert/Notification */
+        #customAlert {
+            position: fixed;
+            top: 30px; /* Adjusted position */
+            right: 30px;
+            background-color: var(--bg-card);
+            color: var(--text);
+            padding: 18px 30px; /* More padding */
+            border-radius: 10px; /* More rounded */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0,191,255,0.4); /* Stronger shadow/glow */
+            display: none;
+            opacity: 0;
+            transform: translateY(-30px); /* More pronounced slide-in */
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Springy animation */
+            z-index: 2000; /* Ensure it's on top of everything */
+            border: 1px solid var(--border);
+            min-width: 300px; /* Wider alert */
+            text-align: left; /* Align text left */
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 1.05rem;
+        }
+
+        #customAlert.show {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #customAlert.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        #customAlert.info {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        #customAlert.warning {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        #customAlert.error {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        #customAlert .alert-message {
+            margin-left: 12px; /* More space */
+        }
+
+        #customAlert i {
+            font-size: 1.3rem; /* Larger icon */
+            margin-right: 8px;
+        }
+
+        /* New Info Sections Styling */
+        .info-sections {
+            margin-top: 4rem; /* More spacing */
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px; /* More rounded */
+            margin-bottom: 2rem; /* More spacing */
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0,191,255,0.15);
+        }
+        .info-card:hover {
+            box-shadow: 0 0 30px rgba(0,191,255,0.4);
+            transform: translateY(-5px);
+        }
+
+
+        .info-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem; /* More padding */
+            cursor: pointer;
+            background: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .info-card-header:hover {
+            background: var(--border);
+            border-color: var(--accent);
+        }
+
+        .info-card-header h3 {
+            color: var(--accent);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px; /* More spacing */
+            font-size: 1.5rem; /* Larger title */
+            font-weight: 600;
+        }
+
+        .info-card-header h3 i {
+            font-size: 1.8rem; /* Larger icon */
+            text-shadow: 0 0 10px rgba(0,191,255,0.6);
+        }
+
+        .arrow-icon {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        .info-card-header.expanded .arrow-icon {
+            transform: rotate(180deg);
+            color: var(--accent);
+        }
+
+        .info-card-content {
+            padding: 0 2rem; /* Consistent horizontal padding */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease-out, padding 0.6s ease-out; /* Slower, smoother transition */
+            color: var(--text-muted);
+        }
+
+        .info-card-content.expanded {
+            max-height: 1000px; /* Adjust as needed for content length, a large value for "auto" */
+            padding: 1.5rem 2rem; /* Actual padding when expanded */
+        }
+
+        .info-card-content p {
+            margin-bottom: 1.2rem; /* More spacing */
+            font-size: 0.98rem;
+            line-height: 1.6;
+        }
+
+        .info-card-content ul {
+            list-style: disc;
+            margin-left: 25px; /* More indent */
+            margin-bottom: 1.2rem;
+        }
+
+        .info-card-content li {
+            margin-bottom: 0.6rem;
+            font-size: 0.92rem;
+        }
+
+        .inline-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: text-decoration 0.2s ease, color 0.2s ease;
+        }
+
+        .inline-link:hover {
+            text-decoration: underline;
+            color: var(--accent-hover);
+        }
+
+        /* Global Search Results Display */
+        #globalSearchResults {
+            margin-top: 2.5rem;
+            display: none;
+            max-height: 500px; /* Taller results area */
+            overflow-y: auto;
+            text-align: left;
+            border-radius: 16px;
+            padding: 2.5rem; /* Consistent padding */
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: 0 5px 20px var(--shadow-primary);
+        }
+
+        #globalSearchResults.active {
+            display: block;
+        }
+
+        #globalSearchResults h3 {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.4rem;
+            text-shadow: 0 0 8px rgba(0,191,255,0.4);
+        }
+
+        .search-result-item {
+            padding: 1rem 0; /* More padding */
+            border-bottom: 1px dashed var(--border);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        .search-result-item:hover {
+            background-color: rgba(0,191,255,0.08); /* Slightly more visible hover effect */
+            transform: translateX(5px);
+        }
+
+        .search-result-item h4 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 1.15rem;
+        }
+
+        .search-result-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .highlight {
+            background-color: var(--warning);
+            color: var(--primary);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .clear-input-btn {
+            position: absolute;
+            right: 15px; /* Adjusted position */
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem; /* Larger icon */
+            opacity: 0.8;
+            transition: opacity 0.2s, color 0.2s, transform 0.2s;
+            padding: 8px; /* Larger click area */
+        }
+        .clear-input-btn:hover {
+            opacity: 1;
+            color: var(--danger);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Buttons for Expand/Collapse All Info Sections */
+        .info-section-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* New section for Shodan/Censys */
+        .specialized-search-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 15px rgba(0,191,255,0.15);
+            transition: all 0.3s ease;
+            margin-top: 2.5rem;
+        }
+        .specialized-search-section:hover {
+            box-shadow: 0 0 40px rgba(0,191,255,0.5), 0 0 80px rgba(0,191,255,0.2);
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .specialized-search-section h3 {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(0,191,255,0.6);
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .conversion-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Dork Assistant</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-link" onclick="switchTab('builder')">Query Builder</a></li>
+                <li><a href="#" class="nav-link" onclick="switchTab('templates')">Templates</a></li>
+                <li><a href="#" class="nav-link" onclick="switchTab('saved-tab-content')">Saved Queries</a></li>
+                <li><a href="#" class="nav-link" onclick="toggleInfoSection('about-tool-content')">About</a></li>
+                <li><button class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-sun" id="theme-icon"></i>
+                </button></li>
+            </ul>
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="main container">
+        <section class="hero">
+            <h1>Dork Assistant: Precision OSINT for Cyber Analysts and Researchers</h1>
+            <p>Empower your threat hunting and penetration testing with advanced reconnaissance. Dork Assistant enables cybersecurity professionals to uncover hidden digital footprints, identify exposed assets, and validate security posture across the global internet.</p>
+            <div class="global-search-bar">
+                <input type="text" class="form-input" id="globalSearchBar" placeholder="Search Dork Assistant documentation, templates, and saved queries...">
+                <button class="btn btn-primary" onclick="performGlobalSearch()">
+                    <i class="fas fa-search"></i> Local Search
+                </button>
+            </div>
+             <div id="globalSearchResults">
+                <h3>Local Search Results <button class="btn btn-secondary btn-small" onclick="clearGlobalSearchResults()">Clear Results</button></h3>
+                <div id="globalSearchResultsContent">
+                </div>
+            </div>
+        </section>
+
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Authorized Use Only:</strong> This Dork Assistant tool is strictly for authorized security research and penetration testing. Ensure explicit permission before testing any systems. Misuse is prohibited and subject to legal action.
+        </div>
+
+        <div class="search-interface">
+            <div class="search-main">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('builder')">Query Builder</div>
+                    <div class="tab" onclick="switchTab('manual')">Manual Query</div>
+                    <div class="tab" onclick="switchTab('templates')">Templates</div>
+                    <div class="tab" onclick="switchTab('saved-tab-content')">Saved Queries</div>
+                </div>
+
+                <div id="builder" class="tab-content active">
+                    <div class="form-group">
+                        <label class="form-label">Target Domain/Site <i class="fas fa-info-circle help-icon" title="Restrict search to a specific domain (e.g., example.com) or a top-level domain (e.g., .gov)."></i></label>
+                        <input type="text" class="form-input" id="site" placeholder="example.com">
+                        <button class="clear-input-btn" onclick="clearInputField('site')"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">File Type <i class="fas fa-info-circle help-icon" title="Search for specific file extensions (e.g., pdf, docx, sql, env)."></i></label>
+                        <select class="form-select" id="filetype">
+                            <option value="">Any</option>
+                            <option value="pdf">PDF</option>
+                            <option value="doc">DOC</option>
+                            <option value="docx">DOCX</option>
+                            <option value="xls">XLS</option>
+                            <option value="xlsx">XLSX</option>
+                            <option value="ppt">PPT</option>
+                            <option value="txt">TXT</option>
+                            <option value="xml">XML</option>
+                            <option value="sql">SQL</option>
+                            <option value="log">LOG</option>
+                            <option value="bak">BAK</option>
+                            <option value="php">PHP</option>
+                            <option value="asp">ASP</option>
+                            <option value="jsp">JSP</option>
+                            <option value="env">ENV</option>
+                            <option value="json">JSON</option>
+                            <option value="yml">YAML</option>
+                            <option value="yaml">YAML (alt)</option>
+                            <option value="csv">CSV</option>
+                            <option value="mdb">MDB</option>
+                            <option value="rar">RAR</option>
+                            <option value="zip">ZIP</option>
+                        </select>
+                        <button class="clear-input-btn" onclick="clearInputField('filetype')"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Search Terms <i class="fas fa-info-circle help-icon" title="Keywords or phrases to search for. Use commas to separate multiple terms (e.g., password, admin, config). Terms will be wrapped in quotes for exact match by default."></i></label>
+                        <input type="text" class="form-input" id="searchTerms" placeholder="password, admin, config, etc.">
+                        <button class="clear-input-btn" onclick="clearInputField('searchTerms')"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Custom Keywords <i class="fas fa-info-circle help-icon" title="Add any custom keywords or phrases not covered by other fields (e.g., your_organization, specific_username, internal_project_name). These will be added as-is to the query."></i></label>
+                        <input type="text" class="form-input" id="customKeywords" placeholder="your_organization, specific_username, internal_project_name">
+                        <button class="clear-input-btn" onclick="clearInputField('customKeywords')"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">URL Contains <i class="fas fa-info-circle help-icon" title="Keywords or patterns that must appear in the URL (e.g., admin, login, config). The 'inurl:' operator will be used."></i></label>
+                        <input type="text" class="form-input" id="inurl" placeholder="admin, login, config, etc.">
+                        <button class="clear-input-btn" onclick="clearInputField('inurl')"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Page Title Contains <i class="fas fa-info-circle help-icon" title="Keywords or phrases that must appear in the HTML page title (e.g., 'index of', 'admin panel'). The 'intitle:' operator will be used."></i></label>
+                        <input type="text" class="form-input" id="intitle" placeholder="index of, admin panel, etc.">
+                        <button class="clear-input-btn" onclick="clearInputField('intitle')"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Exclude Terms <i class="fas fa-info-circle help-icon" title="Terms to exclude from the search results, separated by commas (e.g., old, test, dev). Each term will be prepended with a minus sign (-)."></i></label>
+                        <input type="text" class="form-input" id="exclude" placeholder="Terms to exclude">
+                        <button class="clear-input-btn" onclick="clearInputField('exclude')"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <div id="manual" class="tab-content">
+                    <div class="form-group">
+                        <label class="form-label">Google Dork Query <i class="fas fa-info-circle help-icon" title="Enter your custom Google dork query directly. Use advanced operators like site:, filetype:, inurl:, intitle:"></i></label>
+                        <textarea class="form-input form-textarea" id="manualGoogleQuery" rows="4" placeholder="Enter your custom Google dork query here... e.g., site:example.com inurl:admin filetype:log"></textarea>
+                        <button class="clear-input-btn" onclick="clearInputField('manualGoogleQuery')"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="advanced-operators">
+                        <h4>Insert Google Operators:</h4>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'AND')">AND</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'OR')">OR</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', '-')">NOT (-)</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', '&quot;&quot;')">Exact Match ("")</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', '*')">Wildcard (*)</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'AROUND(3)')">AROUND(x)</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'inanchor:')">inanchor:</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'link:')">link:</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'cache:')">cache:</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'related:')">related:</button>
+                        <button class="operator-button" onclick="insertOperator('manualGoogleQuery', 'info:')">info:</button>
+                    </div>
+                </div>
+
+                <div id="templates" class="tab-content">
+                    <div class="template-categories-sidebar">
+                        <h3>Categories</h3>
+                        <ul id="templateCategoryList" class="category-list">
+                        </ul>
+                    </div>
+                    <div class="template-main-content">
+                        <div class="search-input-group" style="margin-bottom: 1rem;">
+                             <input type="text" class="form-input" id="templateSearchInput" placeholder="Search templates..." onkeyup="searchTemplates()">
+                        </div>
+                        <div class="template-grid" id="templateGrid">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="saved-tab-content" class="tab-content">
+                    <div class="saved-queries-sidebar">
+                        <div class="saved-category-header">
+                            <h3>Categories</h3>
+                            <button class="btn btn-secondary btn-small" onclick="addSavedCategory()"><i class="fas fa-plus"></i> Add Category</button>
+                        </div>
+                        <div class="search-input-group" style="margin-bottom: 1rem;">
+                            <input type="text" class="form-input" id="savedQuerySearchInput" placeholder="Search saved queries..." onkeyup="searchSavedQueries()">
+                        </div>
+                        <ul id="savedQueryCategoryList" class="category-list">
+                        </ul>
+                    </div>
+                    <div class="saved-main-content">
+                        <div class="saved-queries" id="allSavedQueries">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <div class="results-header">
+                        <h2>Current Google Query Preview</h2>
+                        <button class="btn btn-secondary btn-small" onclick="copyQuery('google')"><i class="fas fa-copy"></i> Copy Google Query</button>
+                    </div>
+                    
+                    <div class="query-preview" id="queryPreview">
+                        Build a query or select a template to see the preview here...
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> The query above is for general search engines (Google, Bing, Yandex, DuckDuckGo). Specialized searches like Shodan and Censys are handled separately below.
+                    </div>
+
+                    <div class="search-engines">
+                        <a href="#" class="engine-card" id="googleLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fab fa-google"></i>
+                            </div>
+                            <div>Google Search</div>
+                        </a>
+                        <a href="#" class="engine-card" id="bingLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fab fa-microsoft"></i>
+                            </div>
+                            <div>Bing Search</div>
+                        </a>
+                        <a href="#" class="engine-card" id="yandexLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div>Yandex Search</div>
+                        </a>
+                        <a href="#" class="engine-card" id="duckduckgoLink" target="_blank">
+                            <div class="engine-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div>DuckDuckGo</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="specialized-search-section">
+                    <h3>Specialized OSINT Platforms: Shodan & Censys</h3>
+                    <p class="text-muted" style="margin-bottom: 1rem;">Leverage industrial-grade scanning engines for in-depth device and service discovery.</p>
+
+                    <div class="alert alert-info">
+                        <strong>Query Conversion:</strong> The conversion from Google Dorks to Shodan/Censys is heuristic. Please review and refine the generated queries for optimal results on these platforms.
+                    </div>
+
+                    <div class="conversion-buttons">
+                        <button class="btn btn-secondary" onclick="convertQuery('shodan')">
+                            <i class="fas fa-sync-alt"></i> Convert to Shodan Query
+                        </button>
+                        <button class="btn btn-secondary" onclick="convertQuery('censys')">
+                            <i class="fas fa-sync-alt"></i> Convert to Censys Query
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Shodan Query <i class="fas fa-info-circle help-icon" title="Enter your Shodan search query. Example: port:80 country:US product:nginx."></i></label>
+                        <input type="text" class="form-input" id="manualShodanQuery" placeholder="port:80 country:US product:nginx">
+                        <button class="clear-input-btn" onclick="clearInputField('manualShodanQuery')"><i class="fas fa-times"></i></button>
+                    </div>
+                     <div class="advanced-operators">
+                        <h4>Insert Shodan Operators:</h4>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'net:')">net:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'port:')">port:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'country:')">country:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'city:')">city:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'org:')">org:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'isp:')">isp:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'os:')">os:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'before:')">before:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'after:')">after:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'has_ipv6:true')">has_ipv6:true</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'asn:')">asn:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'product:')">product:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'version:')">version:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'vuln:')">vuln:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'http.title:')">http.title:</button>
+                        <button class="operator-button" onclick="insertOperator('manualShodanQuery', 'ssl.cert.subject.cn:')">ssl.cert.subject.cn:</button>
+                    </div>
+                    <div class="btn-group" style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="buildQueryAndRun('shodan')">
+                            <i class="fas fa-eye"></i> Open Shodan Search
+                        </button>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                        <label class="form-label">Censys Query <i class="fas fa-info-circle help-icon" title="Enter your Censys search query. Refer to Censys documentation for syntax. Example: autonomous_system.country_code: US AND protocols: HTTPS"></i></label>
+                        <input type="text" class="form-input" id="manualCensysQuery" placeholder="autonomous_system.country_code: US AND protocols: HTTPS">
+                        <button class="clear-input-btn" onclick="clearInputField('manualCensysQuery')"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="advanced-operators">
+                        <h4>Insert Censys Operators:</h4>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'AND')">AND</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'OR')">OR</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'NOT')">NOT</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'services.port:')">services.port:</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'services.http.response.status_code:')">services.http.status:</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'services.http.response.html_title:')">services.http.title:</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'autonomous_system.country_code:')">country_code:</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'services.software.vendor:')">software.vendor:</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'services.software.product:')">software.product:</button>
+                        <button class="operator-button" onclick="insertOperator('manualCensysQuery', 'services.tls.certificates.leaf.subject.common_name:')">cert.common_name:</button>
+                    </div>
+                     <div class="btn-group" style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="buildQueryAndRun('censys')">
+                            <i class="fas fa-server"></i> Open Censys Search
+                        </button>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="buildQueryAndRun('google')">
+                        <i class="fas fa-magic"></i> Build Google Query & Run
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearForm()">
+                        <i class="fas fa-eraser"></i> Clear All
+                    </button>
+                    <button class="btn btn-secondary" onclick="saveQuery()">
+                        <i class="fas fa-save"></i> Save Query
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportQueries()">
+                        <i class="fas fa-download"></i> Export Saved
+                    </button>
+                    <button class="btn btn-secondary" onclick="importQueries()">
+                        <i class="fas fa-upload"></i> Import Saved
+                    </button>
+                </div>
+            </div>
+
+            <div class="search-sidebar">
+                <h3>Quick Recon Templates</h3>
+                <div class="btn-group" style="flex-direction: column; margin-top: 1rem;">
+                    <button class="btn btn-secondary" onclick="loadTemplate('sensitive-files', 'google')">
+                        <i class="fas fa-file-alt"></i> Sensitive Files
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('login-pages', 'google')">
+                        <i class="fas fa-sign-in-alt"></i> Login Panels
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('directory-listing', 'google')">
+                        <i class="fas fa-folder-open"></i> Directory Listings
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('error-pages', 'google')">
+                        <i class="fas fa-exclamation-triangle"></i> Error Pages
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('aws-exposure', 'google')">
+                        <i class="fab fa-aws"></i> AWS Exposure
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('api-keys', 'google')">
+                        <i class="fas fa-key"></i> Exposed API Keys
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('shodan-vulnerable', 'shodan')">
+                        <i class="fas fa-skull-crossbones"></i> Shodan Vuln. Scan
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadTemplate('censys-certificates', 'censys')">
+                        <i class="fas fa-certificate"></i> Censys Certificates
+                    </button>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Dork Assistant Enterprise</h3>
+                <div class="enterprise-features" style="margin-top: 1rem;">
+                    <div class="feature-card">
+                        <h4><i class="fas fa-network-wired"></i> Proxy Integration</h4>
+                        <p>Configure and manage proxy settings for anonymous and secure reconnaissance operations.</p>
+                        <button class="btn btn-secondary btn-small" onclick="showAlert('Proxy configuration coming soon!', 'info')">Configure Proxy</button>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-cloud"></i> Cloud Provider Integration</h4>
+                        <p>Connect with major cloud APIs (AWS, Azure, GCP) for targeted resource discovery and validation.</p>
+                        <button class="btn btn-secondary btn-small" onclick="showAlert('API integration coming soon!', 'info')">Manage APIs</button>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-share-alt"></i> Team Collaboration & Reporting</h4>
+                        <p>Share saved queries, generate actionable reports, and collaborate securely within your security team.</p>
+                        <button class="btn btn-secondary btn-small" onclick="showAlert('Team features under development!', 'info')">Share Queries</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="whats-new">
+            <h3>What's New in Dork Assistant v2.0</h3>
+            <div class="feature-grid">
+                <div class="feature-item" id="whats-new-enhanced-builder">
+                    <i class="fas fa-cogs"></i>
+                    <h4>Enhanced Query Builder</h4>
+                    <p>More intuitive interface and granular control over search parameters for precise dork creation.</p>
+                </div>
+                <div class="feature-item" id="whats-new-expanded-templates">
+                    <i class="fas fa-list-alt"></i>
+                    <h4>Expanded Template Library</h4>
+                    <p>New categories and over 70 new pre-built dorks for common vulnerability types and data exposures.</p>
+                </div>
+                <div class="feature-item" id="whats-new-dynamic-theme">
+                    <i class="fas fa-sun"></i>
+                    <h4>Dynamic Theme Switching</h4>
+                    <p>Seamlessly switch between elegant Dark and bright Light modes for optimal viewing comfort in any environment.</p>
+                </div>
+                <div class="feature-item" id="whats-new-advanced-operators">
+                    <i class="fas fa-keyboard"></i>
+                    <h4>Advanced Operator Insertion</h4>
+                    <p>Quickly add complex search operators directly into your manual queries for Google, Shodan, and Censys.</p>
+                </div>
+                <div class="feature-item" id="whats-new-shodan-censys">
+                    <i class="fas fa-code-branch"></i>
+                    <h4>Dedicated Shodan & Censys Interface</h4>
+                    <p>Separate sections for specialized search engines with one-click query conversion and direct launch.</p>
+                </div>
+                <div class="feature-item" id="whats-new-saved-queries">
+                    <i class="fas fa-bookmark"></i>
+                    <h4>Improved Saved Queries Management</h4>
+                    <p>Better organization with categories, quick load, and delete options for your frequently used dorks.</p>
+                </div>
+                <div class="feature-item" id="whats-new-enterprise-features">
+                    <i class="fas fa-rocket"></i>
+                    <h4>Dork Assistant Enterprise Preview</h4>
+                    <p>Conceptual preview of advanced capabilities including proxy integration, cloud API connectivity, and team collaboration.</p>
+                </div>
+            </div>
+        </div>
+
+        <section class="info-sections">
+            <div class="info-section-controls">
+                <button class="btn btn-secondary btn-small" onclick="toggleAllInfoSections(true)"><i class="fas fa-plus-square"></i> Expand All</button>
+                <button class="btn btn-secondary btn-small" onclick="toggleAllInfoSections(false)"><i class="fas fa-minus-square"></i> Collapse All</button>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-header" onclick="toggleInfoSection('about-tool-content')">
+                    <h3><i class="fas fa-info-circle"></i> About Dork Assistant</h3>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="info-card-content" id="about-tool-content">
+                    <p>Dork Assistant is an advanced web-based module, part of the Falcon platform, designed to assist cybersecurity professionals, threat hunters, and security researchers in efficiently performing Google Dorking, OSINT (Open Source Intelligence), and targeted asset discovery.</p>
+                    <p>It provides a streamlined interface to construct complex search queries, integrate with specialized search engines like Shodan and Censys, and manage a curated library of templates and saved queries.</p>
+                    <p>Our mission is to stop breaches. Dork Assistant aids in this by providing a powerful, ethical, and intuitive platform for uncovering publicly accessible information that could represent security vulnerabilities or misconfigurations. Always ensure you have explicit authorization before performing any scans or tests on external systems.</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-header" onclick="toggleInfoSection('documentation-content')">
+                    <h3><i class="fas fa-book"></i> Comprehensive Documentation</h3>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="info-card-content" id="documentation-content">
+                    <p>Welcome to the Dork Assistant Documentation. This section provides detailed guides on how to effectively use each feature of the tool, from building basic queries to leveraging advanced operators and managing your saved dorks.</p>
+                    <p><strong>Key topics include:</strong></p>
+                    <ul>
+                        <li>Understanding Google Dorking Syntax and Operators</li>
+                        <li>Utilizing the Query Builder for various search scenarios</li>
+                        <li>Exploring and customizing the Template Library</li>
+                        <li>Managing and organizing your Saved Queries</li>
+                        <li>Integrating with Shodan and Censys for specialized scans</li>
+                        <li>Tips for efficient security research workflows</li>
+                    </ul>
+                    <p>For a complete list of tutorials and in-depth articles, please visit our <a href="#" class="inline-link">Dork Assistant Documentation Portal</a> (conceptual link).</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-header" onclick="toggleInfoSection('best-practices-content')">
+                    <h3><i class="fas fa-shield-alt"></i> Security Best Practices</h3>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="info-card-content" id="best-practices-content">
+                    <p>To ensure responsible and ethical use of Dork Assistant, adhere to these security best practices:</p>
+                    <ul>
+                        <li><strong>Always Obtain Authorization:</strong> Never perform scans or dorking operations on systems or networks for which you do not have explicit, written authorization. Unauthorized access or testing is illegal and unethical.</li>
+                        <li><strong>Understand the Scope:</strong> Clearly define the scope of your security research. Stick to the agreed-upon targets and avoid unintended collateral impact.</li>
+                        <li><strong>Respect Privacy:</strong> Be mindful of privacy concerns. Avoid searching for or storing personally identifiable information (PII) unless it is explicitly within your authorized scope and legal boundaries.</li>
+                        <li><strong>Anonymity and Proxy Usage:</strong> For legitimate security research, consider using proxies, VPNs, or Tor to anonymize your origin IP address. This helps protect your identity and can prevent some automated blocking.</li>
+                        <li><strong>Rate Limiting:</strong> Avoid aggressive or automated querying that could overwhelm target systems or lead to your IP being blacklisted by search engines. Use manual checks or implement delays if automating.</li>
+                        <li><strong>Report Responsibly:</strong> If you discover a vulnerability, follow responsible disclosure guidelines. Notify the affected party privately and give them time to remediate before making any information public.</li>
+                        <li><strong>Stay Updated:</strong> Regularly review legal guidelines and search engine terms of service to ensure your activities remain compliant.</li>
+                    </ul>
+                    <p>For more detailed guidelines, consult the <a href="#" class="inline-link">Dork Assistant Ethical Hacking Guide</a> (conceptual link).</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-header" onclick="toggleInfoSection('legal-guidelines-content')">
+                    <h3><i class="fas fa-balance-scale"></i> Legal Guidelines</h3>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="info-card-content" id="legal-guidelines-content">
+                    <p>The use of Google Dorking and similar security research tools is subject to various laws and regulations. It is critical that you understand and comply with these laws in your jurisdiction and the jurisdiction of the targets you are researching.</p>
+                    <p><strong>Disclaimer:</strong> This information is for educational purposes and is not legal advice. Consult with a qualified legal professional for advice specific to your situation.</p>
+                    <p><strong>Key legal considerations include:</strong></p>
+                    <ul>
+                        <li><strong>Computer Fraud and Abuse Act (CFAA) - USA:</strong> This act prohibits unauthorized access to computers. Even publicly accessible information found via dorking can be problematic if the *method* of access (e.g., bypassing security controls) is unauthorized.</li>
+                        <li><strong>General Data Protection Regulation (GDPR) - EU:</strong> If you encounter or process personal data of EU citizens, GDPR applies. Unauthorized collection, processing, or exposure of PII can lead to severe penalties.</li>
+                        <li><strong>Data Protection Acts (various countries):</strong> Similar to GDPR, many countries have their own data protection laws.</li>
+                        <li><strong>Terms of Service (ToS) of Search Engines:</strong> Search engines like Google have ToS that govern how their services can be used. Automated scraping or excessive querying might violate these terms.</li>
+                        <li><strong>Trespass to Chattels:</strong> In some jurisdictions, unauthorized access to computer systems, even without damage, can be considered a form of trespass.</li>
+                        <li><strong>Copyright Law:</strong> Be aware that some data or documents you might find could be copyrighted. Unauthorized copying or distribution may be illegal.</li>
+                    </ul>
+                    <p>Always verify legal requirements before conducting any security research. Ignorance of the law is not a defense. Refer to our <a href="#" class="inline-link">Dork Assistant Legal Policy</a> for more details (conceptual link).</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+    <footer class="footer">
+        <div class="floating-particles" id="particles"></div>
+        
+        <div class="container">
+            <div class="footer-content">
+                <h2 class="footer-title">Dork Assistant</h2>
+                <p class="footer-description">
+                    Elite OSINT and Asset Discovery platform for advanced cyber defense teams.<span class="typing-cursor">|</span>
+                </p>
+                
+                <div class="footer-buttons">
+                    <a href="#" class="footer-btn support">
+                        <i class="fas fa-headset"></i>
+                        <span>Support</span>
+                    </a>
+                    <a href="#" class="footer-btn bug">
+                        <i class="fas fa-bug"></i>
+                        <span>Bug Report</span>
+                    </a>
+                    <a href="#" class="footer-btn feedback">
+                        <i class="fas fa-comment-alt"></i>
+                        <span>Feedback</span>
+                    </a>
+                    <a href="https://github.com/w3bcooki3" target="_blank" class="footer-btn github">
+                        <i class="fab fa-github"></i>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="copyright">
+                    <i class="fas fa-copyright" style="margin-right: 8px;"></i>
+                    2025 Dork Assistant. For authorized security research only. All rights reserved.
+                </div>
+                
+                <div class="security-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Blue Team Defense
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <div id="customAlert" class="alert">
+        <span id="alertIcon"></span><span class="alert-message" id="alertMessage"></span>
+    </div>
+
+    <script>
+        // Template data - Expanded with more diverse templates and a new category
+        const templates = {
+            'sensitive-files': {
+                title: 'Sensitive Files & Docs',
+                description: 'Find exposed sensitive files like configs, backups, logs, and spreadsheets containing credentials.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-file-alt',
+                queries: [
+                    'filetype:sql "MySQL dump" (pass|password|passwd|pwd)',
+                    'filetype:log "password" | "passwd" | "pass" | "credentials"',
+                    'filetype:bak inurl:"wp-config" | inurl:"config" | inurl:"backup"',
+                    'filetype:conf "password" | "passwd" | "pass" | "api_key"',
+                    'intitle:"index of" "config.php" | "wp-config.php" | "db.php"',
+                    'filetype:env "DB_PASSWORD" | "DATABASE_URL" | "SECRET_KEY" | "API_KEY"',
+                    'filetype:xls | filetype:xlsx "password" | "credentials" | "P.I.I." | "SSN"',
+                    'inurl:/.aws/credentials',
+                    'intitle:"gitlab.rb" intext:"password"',
+                    'intitle:"nginx.conf" intext:"auth_basic_user_file"',
+                    'filetype:php "PHPINFO()"',
+                    'inurl:/proc/self/cwd',
+                    'filetype:ini | filetype:cfg "connectionstring" | "conn_str"',
+                    'inurl:web.config intext:"User ID" AND intext:"Password"'
+                ]
+            },
+            'login-pages': {
+                title: 'Login Pages & Admin Panels',
+                description: 'Discover admin panels, login interfaces, and authentication portals.',
+                category: 'Web Applications (Google)',
+                icon: 'fas fa-sign-in-alt',
+                queries: [
+                    'inurl:admin intitle:admin',
+                    'inurl:login intitle:login',
+                    'intitle:"Admin Panel" | "Administration" | "Dashboard"',
+                    'inurl:wp-admin | inurl:administrator | inurl:cpanel',
+                    'inurl:phpmyadmin intitle:phpmyadmin',
+                    'intitle:"Login" "admin" "password" site:.gov',
+                    'intitle:"Sign In" | "Sign On" inurl:auth',
+                    'inurl:remote/login.ext',
+                    'intitle:"control panel" inurl:8080',
+                    'intitle:"management console"',
+                    'inurl:/auth/realms/master/protocol/openid-connect/auth', // Keycloak
+                    'intitle:"Jira" inurl:login',
+                    'inurl:owa/auth/logon.aspx' // Exchange OWA
+                ]
+            },
+            'directory-listing': {
+                title: 'Open Directory Listings',
+                description: 'Identify misconfigured web servers exposing directory contents.',
+                category: 'Web Applications (Google)',
+                icon: 'fas fa-folder-open',
+                queries: [
+                    'intitle:"index of" "parent directory"',
+                    'intitle:"index of" "backup" | "log" | "config" | "uploads"',
+                    'intitle:"index of" "database" | "sql" | "dump" | "mdb"',
+                    'intitle:"index of" "password" | "passwd" | "credentials"',
+                    'intitle:"index of" "ftp" | "ssh" | "mail" | "webdav"',
+                    'intitle:"index of" "private" | "secret" | "confidential"',
+                    'intitle:"index of" ".ssh"',
+                    'intitle:"index of" "keys" | "certs"',
+                    'intitle:"index of" "passwords.txt"',
+                    'intitle:"index of" ".env"',
+                    'intitle:"index of" "swagger-ui.html"'
+                ]
+            },
+            'error-pages': {
+                title: 'Error Pages & Debug Info',
+                description: 'Locate error pages that might leak sensitive system or application information.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-bug',
+                queries: [
+                    'intitle:"PHP Parse error" | "PHP Warning" | "PHP Error" | "Parse error"',
+                    'intitle:"MySQL Error" | "SQL Error" | "Database Error" | "syntax error"',
+                    'intitle:"Apache Tomcat" "Error Report" | "Status Report"',
+                    'intitle:"Error 404" filetype:php | filetype:asp | filetype:jsp',
+                    'intitle:"Internal Server Error" | "Server Error"',
+                    'intitle:"Debug" | "Stack Trace" | "Exception" | "debug mode"',
+                    'intitle:"Laravel Error" | "Whoops, looks like something went wrong."',
+                    'intitle:"Flask Debugger" | "Werkzeug Debugger"',
+                    'intitle:"Stack trace" | "Traceback"',
+                    'intext:"server at" intitle:"403 Forbidden" | intitle:"401 Unauthorized"'
+                ]
+            },
+            'database-exposure': {
+                title: 'Database Exposures',
+                description: 'Find exposed databases, database files, and related credentials.',
+                category: 'Data & Databases (Google)',
+                icon: 'fas fa-database',
+                queries: [
+                    'filetype:sql "INSERT INTO" "password" | "passwd" | "username"',
+                    'filetype:sql "CREATE TABLE" users | "CREATE TABLE" accounts',
+                    'filetype:db | filetype:sqlite | filetype:mdb | filetype:accdb',
+                    'intitle:"phpMyAdmin" "running on" "MySQL" | "phpMyAdmin Login"',
+                    'inurl:phpmyadmin inurl:db_structure.php | inurl:sql.php',
+                    'filetype:sql intext:password | intext:passwd | intext:api_key | intext:secret',
+                    'inurl:admin/phpPgAdmin',
+                    'intitle:"index of" "database.sql" | "dump.sql"',
+                    'intext:"connect.php" intext:"mysql_connect"',
+                    'inurl:config.inc.php intext:"$cfg[\'Servers\'][i][\'password\']"'
+                ]
+            },
+            'cloud-storage': {
+                title: 'Generic Cloud Storage Buckets',
+                description: 'Discover misconfigured or exposed cloud storage buckets across various providers.',
+                category: 'Cloud Services (Google)',
+                icon: 'fas fa-cloud',
+                queries: [
+                    'site:s3.amazonaws.com intitle:"index of"',
+                    'site:googleapis.com inurl:storage.cloud.google.com intitle:"index of"',
+                    'site:digitaloceanspaces.com intitle:"index of"',
+                    'site:blob.core.windows.net intitle:"index of"',
+                    'inurl:".s3.amazonaws.com" intitle:"index of" "AccessDenied" "ListBucket"',
+                    'filetype:xml inurl:"?xml" s3 | bucketname',
+                    'inurl:rclone.conf',
+                    'inurl:backup.tar.gz'
+                ]
+            },
+            'aws-exposure': {
+                title: 'AWS Specific Exposure',
+                description: 'Find exposed AWS resources, configurations, and sensitive files specific to Amazon Web Services.',
+                category: 'Cloud Services (Google)',
+                icon: 'fab fa-aws',
+                queries: [
+                    'site:s3.amazonaws.com intitle:"index of /" "AccessDenied" "ListBucket"',
+                    'inurl:s3.amazonaws.com filetype:log | filetype:txt "access key"',
+                    'inurl:s3.amazonaws.com filetype:json "credentials" | "secret_key"',
+                    'intitle:"index of" "aws_access_key_id" "aws_secret_access_key" | "AWS_SESSION_TOKEN"',
+                    'inurl:".ebextensions" filetype:conf | filetype:config | filetype:yaml',
+                    'inurl:".elasticbeanstalk" filetype:config | filetype:json | "credentials"',
+                    'inurl:cloudfront.net filetype:json "access denied" | "private content"',
+                    'inurl:/.aws/credentials filetype:csv',
+                    'inurl:elasticbeanstalk.com "phpinfo()"',
+                    'inurl:lambda.amazonaws.com "access key"',
+                    'filetype:json intext:"arn:aws:iam::"'
+                ]
+            },
+            'azure-exposure': {
+                title: 'Azure Specific Exposure',
+                description: 'Discover misconfigured Azure blob storage, function apps, and other exposed resources.',
+                category: 'Cloud Services (Google)',
+                icon: 'fas fa-microsoft',
+                queries: [
+                    'site:blob.core.windows.net intitle:"index of" | "AccessDenied"',
+                    'site:azurewebsites.net intitle:"index of" | "login"',
+                    'inurl:.azurewebsites.net filetype:env | filetype:json "connectionstring"',
+                    'inurl:core.windows.net filetype:log | filetype:txt "password"',
+                    'inurl:azure-api.net "api_key"',
+                    'inurl:azureedge.net filetype:xml "AccessDenied"',
+                    'inurl:functions.azure.com/api/ "secret"',
+                    'inurl:scm.azurewebsites.net "index of"'
+                ]
+            },
+            'gcp-exposure': {
+                title: 'GCP Specific Exposure',
+                description: 'Identify exposed Google Cloud Platform storage buckets, Kubernetes configurations, and credentials.',
+                category: 'Cloud Services (Google)',
+                icon: 'fab fa-google',
+                queries: [
+                    'site:googleapis.com inurl:storage.cloud.google.com intitle:"index of" | "access denied"',
+                    'filetype:json intext:"client_id" intext:"client_secret" intext:"token_uri" inurl:"google"',
+                    'filetype:yaml intext:"kind: ServiceAccount"',
+                    'intitle:"index of" inurl:compute.googleapis.com "config" | "credentials"',
+                    'inurl:storage.googleapis.com filetype:log | filetype:txt "api_key"',
+                    'inurl:gcp-storage.com filetype:json "serviceAccountKey"',
+                    'filetype:json intext:"private_key_id" intext:"private_key"'
+                ]
+            },
+            'git-exposure': {
+                title: 'Git Repositories & Source Code',
+                description: 'Identify exposed Git repositories, source code, and version control artifacts.',
+                category: 'Source Code (Google)',
+                icon: 'fab fa-git-alt',
+                queries: [
+                    'inurl:".git" intitle:"index of"',
+                    'intitle:"index of" ".git/config" | ".git/HEAD"',
+                    'filetype:git | filetype:svn | filetype:hg',
+                    'inurl:github.com "password" | "passwd" | "api_key" | "private_key"',
+                    'site:pastebin.com "password" | "passwd" | "api_key" | "secret"',
+                    'intitle:"index of" "source" | "src" | "code" | "repository"',
+                    'inurl:".git/logs/HEAD"',
+                    'inurl:".github/workflows/" filetype:yml',
+                    'inurl:".git/COMMIT_EDITMSG"',
+                    'intext:"clone --recursive"'
+                ]
+            },
+            'webcam-exposure': {
+                title: 'Exposed Webcams & IoT Devices',
+                description: 'Locate publicly accessible webcams, security cameras, and various IoT devices.',
+                category: 'IoT & Devices (Google)',
+                icon: 'fas fa-camera',
+                queries: [
+                    'intitle:"Live View" | "Network Camera" | "webcamXP" | "webcam 7"',
+                    'inurl:view/view.shtml | inurl:CgiStart?page=',
+                    'intitle:"EvoCam" inurl:"webcam.html"',
+                    'intitle:"Live View / - AXIS" | intitle:"AXIS Communications Camera"',
+                    'intitle:"WJ-NT104 Main Page" | intitle:"Panasonic Network Camera"',
+                    'inurl:"ViewerFrame?Mode=" | inurl:"axis-cgi/mjpg/video.cgi"',
+                    'intitle:"IP Camera" inurl:snapshot.cgi',
+                    'intitle:"NetCamSC"',
+                    'inurl:"wvhttp-01" intitle:"camera"',
+                    'intitle:"webcam" inurl:"/cgi-bin/snapshot.cgi"',
+                    'intitle:"webcam" inurl:8080'
+                ]
+            },
+            'vulnerable-apps': {
+                title: 'Vulnerable Applications',
+                description: 'Find potentially vulnerable web applications and outdated software instances.',
+                category: 'Web Applications (Google)',
+                icon: 'fas fa-shield-virus',
+                queries: [
+                    'intitle:"phpinfo()" "PHP Version" | "Configuration File (php.ini)"',
+                    'intitle:"Test Page for Apache Installation" | "Apache Test Page"',
+                    'intitle:"Welcome to nginx!" | "nginx/1." | "nginx default page"',
+                    'intitle:"Apache2 Ubuntu Default Page" | "Apache HTTP Server Test Page"',
+                    'intitle:"IIS Windows Server" | "IIS 7.5 Welcome"',
+                    'inurl:shell.php | inurl:cmd.php | inurl:shell.jsp | inurl:rce.php',
+                    'inurl:".git" intext:"index of" | inurl:".env" intext:"APP_KEY"',
+                    'intitle:"Zabbix" inurl:"zabbix.php"',
+                    'intitle:"Jenkins" "dashboard"',
+                    'intitle:"Adminer" | "phpLiteAdmin"',
+                    'intitle:"Elastic Stack" "Kibana"',
+                    'intitle:"Jupyter" inurl:"/lab"'
+                ]
+            },
+            'api-keys': {
+                title: 'Exposed API Keys & Credentials',
+                description: 'Search for hardcoded API keys, tokens, and credentials in public files and directories.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-key',
+                queries: [
+                    'intext:"api_key" | "API_KEY" | "api-key" filetype:json | filetype:js | filetype:txt',
+                    'intext:"access_token" | "token" filetype:json | filetype:js | filetype:txt',
+                    'intext:"client_secret" | "CLIENT_SECRET" filetype:json | filetype:js | filetype:txt',
+                    'intext:"aws_access_key_id" | "aws_secret_access_key" filetype:txt | filetype:log | filetype:json',
+                    'intext:"github_token" | "GH_TOKEN" filetype:txt | filetype:yml | filetype:yaml',
+                    'inurl:config.php intext:"password" | "db_pass"',
+                    'filetype:pem | filetype:key "BEGIN PRIVATE KEY" | "BEGIN RSA PRIVATE KEY"',
+                    'intext:"slack_token" | "xoxb-"',
+                    'intext:"bearer token" filetype:txt | filetype:log',
+                    'intext:"Authorization: Bearer" inurl:api',
+                    'intext:"firebaseConfig" filetype:js "apiKey"',
+                    'intext:"stripe.secret" filetype:js',
+                    'intext:"paypal.api.secret" filetype:js'
+                ]
+            },
+            'backup-files': {
+                title: 'Backup Files & Archives',
+                description: 'Discover leftover backup files that may contain sensitive data or source code.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-archive',
+                queries: [
+                    'filetype:zip | filetype:rar | filetype:7z | filetype:tar.gz "backup" | "website" | "database"',
+                    'inurl:backup | inurl:old | inurl:bak filetype:zip | filetype:rar',
+                    'intitle:"index of" "backup" | "old" | "archive" filetype:zip',
+                    'intitle:"backup" inurl:admin',
+                    'inurl:wp-content/uploads/backupbuddy_backups/',
+                    'inurl:wp-content/updraftplus/',
+                    'inurl:joomla/backup/',
+                    'inurl:mysqldump.sql.gz',
+                    'filetype:tgz "database.sql"'
+                ]
+            },
+            'network-devices': {
+                title: 'Network Devices & Servers',
+                description: 'Find accessible network devices, routers, and server interfaces.',
+                category: 'IoT & Devices (Google)',
+                icon: 'fas fa-network-wired',
+                queries: [
+                    'intitle:"D-Link Router" | "Netgear Router" | "Cisco Router"',
+                    'intitle:"Router Configuration" inurl:admin',
+                    'intitle:"Welcome to VMware ESXi" | "vCenter Server"',
+                    'intitle:"iLO" | "Integrated Lights-Out" | "iDRAC"',
+                    'intitle:"HP Printer Status" | "Brother Printer"',
+                    'intitle:"Login to FortiGate" | "Palo Alto Networks"',
+                    'intitle:"MikroTik RouterOS" | "Ubiquiti UniFi"',
+                    'intitle:"Grandstream" inurl:"login"',
+                    'intitle:"Jenkins" "dashboard"',
+                    'intitle:"Nessus" "login"',
+                    'intitle:"PRTG Network Monitor" "login"',
+                    'intitle:"Zabbix" "dashboard"',
+                    'intitle:"Nagios" "login"'
+                ]
+            },
+            'public-documents': {
+                title: 'Public Documents & Reports',
+                description: 'Locate public documents that might contain sensitive organizational information.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-file-invoice',
+                queries: [
+                    'filetype:pdf "confidential" | "internal use only"',
+                    'filetype:doc | filetype:docx "report" "sensitive" company_name',
+                    'filetype:xls | filetype:xlsx "employee list" | "salaries"',
+                    'filetype:ppt | filetype:pptx "company strategy" | "business plan"',
+                    'filetype:pdf "statement of work" | "SOW"',
+                    'filetype:pdf "meeting minutes" "confidential"',
+                    'filetype:csv "email,password"',
+                    'filetype:pdf "PCI DSS" "compliance"',
+                    'filetype:pdf "security audit report"'
+                ]
+            },
+            'subdomain-enumeration': {
+                title: 'Subdomain Enumeration',
+                description: 'Find subdomains using Google dorks.',
+                category: 'Reconnaissance (Google)',
+                icon: 'fas fa-sitemap',
+                queries: [
+                    'site:*.example.com -www',
+                    'site:example.com -inurl:www'
+                ]
+            },
+            'exposed-credentials-general': {
+                title: 'Exposed Credentials (General)',
+                description: 'Broad search for credentials across various file types.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-user-lock',
+                queries: [
+                    'intext:"password" filetype:txt | filetype:log | filetype:csv | filetype:env | filetype:ini',
+                    'intext:"username" AND intext:"password" filetype:xls | filetype:xlsx',
+                    'intext:"secret_key" | "client_secret" filetype:json | filetype:yaml',
+                    'intext:"pass=" filetype:php | filetype:asp | filetype:jsp',
+                    'intitle:"credentials" filetype:pdf'
+                ]
+            },
+            'pastebin-leaks': {
+                title: 'Pastebin & Code Sharing Leaks',
+                description: 'Search for sensitive information on code-sharing sites like Pastebin, GitHub.',
+                category: 'Information Disclosure (Google)',
+                icon: 'fas fa-code',
+                queries: [
+                    'site:pastebin.com intext:"password" | "api_key" | "secret"',
+                    'site:github.com intext:"password" | "api_key" | "secret" | "auth_token"',
+                    'site:codepen.io intext:"password" | "secret"',
+                    'site:replit.com intext:"password" | "api_key"',
+                    'site:npmjs.com intext:"auth_token"',
+                    'site:gists.github.com intext:"password" | "API_KEY"'
+                ]
+            },
+            'shodan-basic': {
+                title: 'Shodan: Basic Services',
+                description: 'Find devices running common services like HTTP, SSH, FTP, or RDP.',
+                category: 'Shodan Specific',
+                icon: 'fas fa-fingerprint',
+                queries: [
+                    'port:80 country:US',
+                    'port:22 country:DE os:Linux',
+                    'port:21 country:GB',
+                    'port:3389 country:CA os:"Windows"',
+                    'http.title:"Apache" port:80',
+                    'port:443 org:"Amazon.com"',
+                    'product:nginx version:1.18',
+                    'telnet banner:"BusyBox"',
+                    'has_screenshot:true'
+                ]
+            },
+            'shodan-vulnerable': {
+                title: 'Shodan: Vulnerable Services',
+                description: 'Discover devices with known vulnerabilities or common misconfigurations.',
+                category: 'Shodan Specific',
+                icon: 'fas fa-skull-crossbones',
+                queries: [
+                    'vuln:CVE-2021-44228', // Log4j
+                    'http.component:"nginx" http.status:500',
+                    'product:elasticsearch version:7.10.2',
+                    'product:microsoft-iis http.status:401',
+                    'product:nginx http.title:"Welcome to nginx!"',
+                    'product:Fortinet vuln:CVE-2018-13379',
+                    'product:"Apache Struts" http.status:200',
+                    'port:8080 product:Jenkins',
+                    'product:"VNC" authentication.auth_method:none',
+                    'product:"RDP" authentication.security_layer:rdp',
+                    'product:"OpenSSH" version:"7.4"', // Example old version
+                    'http.favicon.hash:-1932607999 product:Netgear' // Known vulnerable favicon hash
+                ]
+            },
+            'shodan-industrial-control': {
+                title: 'Shodan: Industrial Control Systems (ICS)',
+                description: 'Search for exposed ICS/SCADA devices and protocols.',
+                category: 'Shodan Specific',
+                icon: 'fas fa-industry',
+                queries: [
+                    'port:502 product:Modbus',
+                    'port:102 product:Siemens S7',
+                    'port:20000 product:DNP3',
+                    'port:47808 product:BACnet',
+                    'product:GE-SRTP',
+                    'port:44818 product:EtherNet/IP'
+                ]
+            },
+            'shodan-database-servers': {
+                title: 'Shodan: Database Servers',
+                description: 'Identify exposed database instances (MongoDB, MySQL, PostgreSQL, Redis).',
+                category: 'Shodan Specific',
+                icon: 'fas fa-database',
+                queries: [
+                    'port:27017 product:MongoDB authentication:disabled',
+                    'port:3306 product:MySQL',
+                    'port:5432 product:PostgreSQL',
+                    'port:6379 product:Redis',
+                    'product:Microsoft SQL Server port:1433'
+                ]
+            },
+            'shodan-cloud-instances': {
+                title: 'Shodan: Cloud Instances',
+                description: 'Locate cloud-hosted instances by provider and specific services.',
+                category: 'Shodan Specific',
+                icon: 'fas fa-cloud',
+                queries: [
+                    'org:"Amazon.com" os:Linux',
+                    'org:"Google LLC" http.component:nginx',
+                    'org:"Microsoft Azure" port:3389',
+                    'org:"DigitalOcean"',
+                    'org:"Alibaba Cloud"',
+                    'tag:aws' // Use tags for more general cloud searches
+                ]
+            },
+            'censys-certificates': {
+                title: 'Censys: SSL Certificates',
+                description: 'Search for SSL/TLS certificates based on issuer, subject, or common name.',
+                category: 'Censys Specific',
+                icon: 'fas fa-certificate',
+                queries: [
+                    'services.tls.certificates.leaf.subject.organization: "Cloudflare" AND tags: "https"',
+                    'services.tls.certificates.leaf.subject.common_name: *.example.com',
+                    'services.tls.certificates.leaf.issuer.organization: "Let\'s Encrypt"',
+                    'services.tls.certificates.leaf.fingerprint_sha256: 1234567890abcdef',
+                    'services.tls.certificates.leaf.validation.nss.valid: true',
+                    'services.tls.certificates.leaf.validity.not_after:[2025-01-01 TO 2025-12-31]',
+                    'services.tls.certificates.leaf.subject.organizational_unit: "IT Department"'
+                ]
+            },
+            'censys-services': {
+                title: 'Censys: Exposed Services',
+                description: 'Find services exposed on the internet based on ports, protocols, or banners.',
+                category: 'Censys Specific',
+                icon: 'fas fa-server',
+                queries: [
+                    'services.port: 443 AND services.http.response.status_code: 200',
+                    'services.port: 23 AND services.telnet.banner.banner: "Welcome"',
+                    'services.port: 27017 AND tags: "mongodb"',
+                    'services.ftp.banner: "vsFTPd" AND autonomous_system.country_code: "US"',
+                    'services.smb.v1_support: true',
+                    'services.vnc.rfb.authentication: "none"',
+                    'services.ssh.v2.banner: "OpenSSH_7.6p1"',
+                    'services.rdp.v8.encryption_methods.name: "RDP_ENC_ALG_RC4_128"',
+                    'services.http.response.headers.server: "Apache/2.4.6"',
+                    'services.http.response.body: "admin_panel"',
+                    'protocols: "5900/vnc"' // VNC protocol
+                ]
+            },
+            'censys-host-metadata': {
+                title: 'Censys: Host Metadata',
+                description: 'Search for hosts based on their metadata, such as country, ASN, or cloud provider.',
+                category: 'Censys Specific',
+                icon: 'fas fa-globe',
+                queries: [
+                    'autonomous_system.country_code: "GB" AND location.city: "London"',
+                    'autonomous_system.asn: "AS15169" AND tags: "ssh"', // Google's ASN
+                    'cloud_provider: "aws" AND services.port: 80',
+                    'os.name: "Linux" AND os.version: "Ubuntu"',
+                    'host_id: "abcdef12-3456-7890-abcd-ef1234567890"', // Example host ID
+                    'last_updated:[2024-01-01 TO 2024-12-31]'
+                ]
+            },
+            'censys-vulnerabilities': {
+                title: 'Censys: Vulnerability Search',
+                description: 'Find hosts with known vulnerabilities (requires Censys ASM access for detailed vulns).',
+                category: 'Censys Specific',
+                icon: 'fas fa-exclamation-triangle',
+                queries: [
+                    'vulnerabilities.cve_id: "CVE-2021-44228"',
+                    'services.http.response.html_title: "phpinfo()" AND tags: "vulnerable"',
+                    'services.software.product: "nginx" AND services.software.version: "1.20.1"',
+                    'services.tls.validation.bad_hostname: true' // Bad hostname in cert
+                ]
+            }
+        };
+
+
+        let currentGoogleQuery = '';
+        let currentShodanQuery = '';
+        let currentCensysQuery = '';
+        let savedQueries = JSON.parse(localStorage.getItem('dorkQueries') || '[]');
+        let savedCategories = JSON.parse(localStorage.getItem('dorkCategories') || '["Uncategorized"]');
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTemplates();
+            loadSavedCategories();
+            loadSavedQueries('All'); // Load all saved queries initially
+            
+            // Add event listeners for real-time preview (for builder tab)
+            document.querySelectorAll('#site, #filetype, #searchTerms, #customKeywords, #inurl, #intitle, #exclude').forEach(input => {
+                input.addEventListener('input', () => buildQueryFromBuilder());
+            });
+            
+            // Add event listeners for manual tab fields
+            document.getElementById('manualGoogleQuery').addEventListener('input', function() {
+                currentGoogleQuery = this.value;
+                updateQueryPreview('google');
+            });
+
+            document.getElementById('manualShodanQuery').addEventListener('input', function() {
+                currentShodanQuery = this.value;
+                // No specific Shodan/Censys preview area, it updates the field directly
+            });
+
+            document.getElementById('manualCensysQuery').addEventListener('input', function() {
+                currentCensysQuery = this.value;
+                // No specific Shodan/Censys preview area, it updates the field directly
+            });
+
+            // Add event listener for global search bar 'Enter' key
+            document.getElementById('globalSearchBar').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    performGlobalSearch();
+                }
+            });
+
+            // Initialize help system (tooltips)
+            initializeHelp();
+
+            // Load saved theme (Default to dark mode if not set)
+            const savedTheme = localStorage.getItem('dorkmaster_theme') || 'dark';
+            document.body.classList.add(savedTheme + '-mode');
+            updateThemeIcon(savedTheme);
+
+            // Set initial preview to Google query from builder
+            buildQueryFromBuilder();
+        });
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tabs .tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            const clickedTab = document.querySelector(`.tabs .tab[onclick="switchTab('${tabName}')"]`);
+            if (clickedTab) {
+                clickedTab.classList.add('active');
+            }
+
+            // Update preview based on selected tab's default
+            if (tabName === 'builder') {
+                buildQueryFromBuilder(); // Re-build all queries and update preview
+                updateQueryPreview('google'); // Ensure Google preview is shown
+            } else if (tabName === 'manual') {
+                // Sync manual fields with current generated queries if they exist
+                document.getElementById('manualGoogleQuery').value = currentGoogleQuery;
+                document.getElementById('manualShodanQuery').value = currentShodanQuery;
+                document.getElementById('manualCensysQuery').value = currentCensysQuery;
+                updateQueryPreview('google'); // Default to Google preview in manual tab
+            } else if (tabName === 'templates') {
+                // When switching to templates, we don't have a default query to display immediately
+                document.getElementById('queryPreview').textContent = 'Select a template to preview its query...';
+                clearSearchLinks();
+                filterTemplates('All'); // Ensure templates are loaded and 'All' is active
+            } else if (tabName === 'saved-tab-content') {
+                document.getElementById('queryPreview').textContent = 'Select a saved query to preview...';
+                clearSearchLinks();
+                loadSavedCategories(); // Reload categories
+                loadSavedQueries('All'); // Load all saved queries
+            }
+        }
+
+        function toggleTheme() {
+            if (document.body.classList.contains('dark-mode')) {
+                document.body.classList.remove('dark-mode');
+                document.body.classList.add('light-mode');
+                localStorage.setItem('dorkmaster_theme', 'light');
+                updateThemeIcon('light');
+            } else {
+                document.body.classList.remove('light-mode');
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('dorkmaster_theme', 'dark');
+                updateThemeIcon('dark');
+            }
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('theme-icon');
+            if (theme === 'light') {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        }
+
+
+        function loadTemplates() {
+            const templateGrid = document.getElementById('templateGrid');
+            const templateCategoryList = document.getElementById('templateCategoryList');
+            templateGrid.innerHTML = '';
+            templateCategoryList.innerHTML = '';
+
+            const categories = {};
+            Object.values(templates).forEach(template => {
+                if (!categories[template.category]) {
+                    categories[template.category] = [];
+                }
+                categories[template.category].push(template);
+            });
+
+            // Add "All" category
+            const allCategoryItem = document.createElement('li');
+            const allCategoryButton = document.createElement('button');
+            allCategoryButton.textContent = 'All Categories';
+            allCategoryButton.className = 'active'; // Make "All" active by default
+            allCategoryButton.onclick = () => filterTemplates('All');
+            allCategoryItem.appendChild(allCategoryButton);
+            templateCategoryList.appendChild(allCategoryItem);
+
+            // Add dynamic categories with icons
+            const categoryIcons = {
+                'Information Disclosure (Google)': 'fas fa-info-circle',
+                'Web Applications (Google)': 'fas fa-globe',
+                'Data & Databases (Google)': 'fas fa-database',
+                'Cloud Services (Google)': 'fas fa-cloud',
+                'Source Code (Google)': 'fab fa-git-alt',
+                'IoT & Devices (Google)': 'fas fa-wifi',
+                'Reconnaissance (Google)': 'fas fa-binoculars',
+                'Shodan Specific': 'fas fa-fingerprint',
+                'Censys Specific': 'fas fa-server'
+            };
+
+            Object.keys(categories).sort().forEach(category => {
+                const categoryItem = document.createElement('li');
+                const categoryButton = document.createElement('button');
+                categoryButton.innerHTML = `<i class="${categoryIcons[category] || 'fas fa-tag'}"></i> ${category}`;
+                categoryButton.onclick = () => filterTemplates(category);
+                categoryItem.appendChild(categoryButton);
+                templateCategoryList.appendChild(categoryItem);
+            });
+
+            // Initial load of all templates
+            filterTemplates('All');
+        }
+
+        function filterTemplates(category) {
+            const templateGrid = document.getElementById('templateGrid');
+            templateGrid.innerHTML = '';
+
+            // Deactivate all category buttons
+            document.querySelectorAll('#templateCategoryList button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Activate the clicked category button
+            const activeCategoryButton = document.querySelector(`#templateCategoryList button[onclick="filterTemplates('${category}')"]`);
+            if (activeCategoryButton) {
+                activeCategoryButton.classList.add('active');
+            }
+
+            const searchTerm = document.getElementById('templateSearchInput').value.toLowerCase();
+
+            const filteredTemplates = Object.entries(templates).filter(([key, template]) => {
+                const matchesCategory = category === 'All' || template.category === category;
+                const matchesSearch = template.title.toLowerCase().includes(searchTerm) || 
+                                      template.description.toLowerCase().includes(searchTerm) ||
+                                      template.queries.some(q => q.toLowerCase().includes(searchTerm));
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredTemplates.length === 0) {
+                templateGrid.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No templates found for this category or search term.</p>';
+                return;
+            }
+
+            filteredTemplates.forEach(([key, template]) => {
+                const templateCard = document.createElement('div');
+                templateCard.className = 'template-card';
+                // Pass engine type if the template is specific to Shodan/Censys
+                const engineType = template.category.includes('Shodan') ? 'shodan' : (template.category.includes('Censys') ? 'censys' : 'google');
+                templateCard.onclick = () => loadTemplate(key, engineType);
+
+                templateCard.innerHTML = `
+                    <div class="template-title">${template.title}</div>
+                    <div class="template-desc">${template.description}</div>
+                    <div class="template-query">${template.queries[0]}</div>
+                `;
+
+                templateGrid.appendChild(templateCard);
+            });
+        }
+
+        function searchTemplates() {
+            const currentActiveCategoryButton = document.querySelector('#templateCategoryList button.active');
+            const currentCategory = currentActiveCategoryButton ? currentActiveCategoryButton.textContent.trim().replace('<i class="fas fa-tag"></i> ', '').replace('All Categories', 'All') : 'All';
+            filterTemplates(currentCategory);
+        }
+
+        function loadTemplate(templateKey, engineType = 'google') {
+            const template = templates[templateKey];
+            if (!template) return;
+            
+            switchTab('manual'); // Always switch to manual tab
+
+            // Clear all manual fields first
+            document.getElementById('manualGoogleQuery').value = '';
+            document.getElementById('manualShodanQuery').value = '';
+            document.getElementById('manualCensysQuery').value = '';
+            currentGoogleQuery = '';
+            currentShodanQuery = '';
+            currentCensysQuery = '';
+
+
+            if (engineType === 'shodan') {
+                document.getElementById('manualShodanQuery').value = template.queries[0];
+                currentShodanQuery = template.queries[0];
+                showAlert(`Shodan template '${template.title}' loaded!`, 'info');
+            } else if (engineType === 'censys') {
+                document.getElementById('manualCensysQuery').value = template.queries[0];
+                currentCensysQuery = template.queries[0];
+                showAlert(`Censys template '${template.title}' loaded!`, 'info');
+            } else { // Default to Google
+                document.getElementById('manualGoogleQuery').value = template.queries[0];
+                currentGoogleQuery = template.queries[0];
+                showAlert(`Google template '${template.title}' loaded!`, 'info');
+            }
+            updateQueryPreview('google'); // Always update Google preview, even if other fields are populated
+        }
+
+        function buildQueryFromBuilder() {
+            const site = document.getElementById('site').value.trim();
+            const filetype = document.getElementById('filetype').value;
+            const searchTerms = document.getElementById('searchTerms').value.trim();
+            const customKeywords = document.getElementById('customKeywords').value.trim();
+            const inurl = document.getElementById('inurl').value.trim();
+            const intitle = document.getElementById('intitle').value.trim();
+            const exclude = document.getElementById('exclude').value.trim();
+
+            // --- Build Google Query ---
+            let googleQueryParts = [];
+            
+            if (site) {
+                googleQueryParts.push(`site:${site}`);
+            }
+            if (filetype) {
+                googleQueryParts.push(`filetype:${filetype}`);
+            }
+            if (searchTerms) {
+                const terms = searchTerms.split(',').map(term => term.trim()).filter(term => term);
+                if (terms.length > 0) {
+                    googleQueryParts.push(`(${terms.map(term => `"${term}"`).join(' OR ')})`);
+                }
+            }
+            if (customKeywords) {
+                const customTerms = customKeywords.split(',').map(term => term.trim()).filter(term => term);
+                if (customTerms.length > 0) {
+                    googleQueryParts.push(...customTerms);
+                }
+            }
+            if (inurl) {
+                const inurlTerms = inurl.split(',').map(term => `inurl:"${term.trim()}"`).filter(term => term);
+                if (inurlTerms.length > 0) {
+                    googleQueryParts.push(...inurlTerms);
+                }
+            }
+            if (intitle) {
+                const intitleTerms = intitle.split(',').map(term => `intitle:"${term.trim()}"`).filter(term => term);
+                if (intitleTerms.length > 0) {
+                    googleQueryParts.push(...intitleTerms);
+                }
+            }
+            if (exclude) {
+                const excludeTerms = exclude.split(',').map(term => `-"${term.trim()}"`).filter(term => term);
+                if (excludeTerms.length > 0) {
+                    googleQueryParts.push(...excludeTerms);
+                }
+            }
+            currentGoogleQuery = googleQueryParts.join(' ').trim();
+            updateQueryPreview('google'); // Default to showing Google query in preview
+        }
+
+        // This function is now responsible for running the query
+        function buildQueryAndRun(engine = 'google') {
+            // If called from the builder, re-build all queries first
+            const currentTab = document.querySelector('.tabs .tab.active').id;
+            if (currentTab === 'builder') {
+                buildQueryFromBuilder();
+            } else if (currentTab === 'manual') {
+                // Queries are already in currentGoogleQuery, currentShodanQuery, currentCensysQuery via input listeners
+            }
+
+            if (engine === 'google') {
+                if (currentGoogleQuery) {
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(currentGoogleQuery)}`, '_blank');
+                    showAlert('Google search initiated with your query!', 'success');
+                } else {
+                    showAlert('No Google query to run. Please build one first in Query Builder or enter in Manual Query.', 'warning');
+                }
+            } else if (engine === 'shodan') {
+                if (currentShodanQuery) {
+                    window.open(`https://www.shodan.io/search?query=${encodeURIComponent(currentShodanQuery)}`, '_blank');
+                    showAlert('Shodan search initiated!', 'success');
+                } else {
+                    showAlert('No Shodan query to run. Please enter one in the Shodan Query field.', 'warning');
+                }
+            } else if (engine === 'censys') {
+                if (currentCensysQuery) {
+                    window.open(`https://search.censys.io/search?resource=hosts&q=${encodeURIComponent(currentCensysQuery)}`, '_blank');
+                    showAlert('Censys search initiated!', 'success');
+                } else {
+                    showAlert('No Censys query to run. Please enter one in the Censys Query field.', 'warning');
+                }
+            }
+        }
+
+        function updateQueryPreview(engineType = 'google') {
+            const preview = document.getElementById('queryPreview');
+            let displayQuery = '';
+
+            if (engineType === 'google') {
+                displayQuery = currentGoogleQuery;
+                document.getElementById('manualGoogleQuery').value = currentGoogleQuery; // Sync manual field
+            }
+            // Shodan and Censys don't have a single "preview" area, they update their respective fields.
+            // So we don't update preview based on them here, only Google.
+            
+            if (displayQuery) {
+                preview.textContent = displayQuery;
+                updateSearchLinks(); // Update all links based on all current queries
+            } else {
+                preview.textContent = 'Build a query or select a template to see the preview here...';
+                clearSearchLinks();
+            }
+        }
+
+        // Modified to always update all search engine links based on current global query variables
+        function updateSearchLinks() {
+            const googleLink = document.getElementById('googleLink');
+            const bingLink = document.getElementById('bingLink');
+            const yandexLink = document.getElementById('yandexLink');
+            const duckduckgoLink = document.getElementById('duckduckgoLink');
+
+            // Set Google/Bing/Yandex/DuckDuckGo links
+            const encodedGoogleQuery = encodeURIComponent(currentGoogleQuery);
+            googleLink.href = currentGoogleQuery ? `https://www.google.com/search?q=${encodedGoogleQuery}` : '#';
+            bingLink.href = currentGoogleQuery ? `https://www.bing.com/search?q=${encodedGoogleQuery}` : '#';
+            yandexLink.href = currentGoogleQuery ? `https://yandex.com/search/?text=${encodedGoogleQuery}` : '#';
+            duckduckgoLink.href = currentGoogleQuery ? `https://duckduckgo.com/?q=${encodedGoogleQuery}` : '#';
+        }
+
+        function clearSearchLinks() {
+            document.querySelectorAll('.search-engines a').forEach(link => {
+                link.href = '#';
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('site').value = '';
+            document.getElementById('filetype').value = '';
+            document.getElementById('searchTerms').value = '';
+            document.getElementById('customKeywords').value = ''; 
+            document.getElementById('inurl').value = '';
+            document.getElementById('intitle').value = '';
+            document.getElementById('exclude').value = '';
+            document.getElementById('manualGoogleQuery').value = '';
+            document.getElementById('manualShodanQuery').value = '';
+            document.getElementById('manualCensysQuery').value = '';
+            document.getElementById('globalSearchBar').value = ''; /* Clear global search bar as well */
+            clearGlobalSearchResults(); // Clear global search results
+            currentGoogleQuery = '';
+            currentShodanQuery = '';
+            currentCensysQuery = '';
+            updateQueryPreview('google'); // Reset preview to Google (which will be empty)
+            showAlert('All fields cleared!', 'info');
+        }
+
+        function clearInputField(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = '';
+                // Trigger input event to update preview if it's a builder field
+                if (['site', 'filetype', 'searchTerms', 'customKeywords', 'inurl', 'intitle', 'exclude'].includes(fieldId)) {
+                    buildQueryFromBuilder();
+                } else if (fieldId === 'manualGoogleQuery') {
+                    currentGoogleQuery = '';
+                    updateQueryPreview('google');
+                } else if (fieldId === 'manualShodanQuery') {
+                    currentShodanQuery = '';
+                } else if (fieldId === 'manualCensysQuery') {
+                    currentCensysQuery = '';
+                }
+            }
+        }
+
+        function saveQuery() {
+            let queryToSave = '';
+            let queryType = '';
+
+            const currentTab = document.querySelector('.tabs .tab.active').textContent.trim();
+
+            if (currentTab === 'Query Builder') {
+                buildQueryFromBuilder(); // Ensure Google query is built from builder fields
+                queryToSave = currentGoogleQuery;
+                queryType = 'google';
+            } else if (currentTab === 'Manual Query') {
+                // Determine which manual query field has content
+                if (document.getElementById('manualGoogleQuery').value.trim()) {
+                    queryToSave = document.getElementById('manualGoogleQuery').value.trim();
+                    queryType = 'google';
+                } else if (document.getElementById('manualShodanQuery').value.trim()) {
+                    queryToSave = document.getElementById('manualShodanQuery').value.trim();
+                    queryType = 'shodan';
+                } else if (document.getElementById('manualCensysQuery').value.trim()) {
+                    queryToSave = document.getElementById('manualCensysQuery').value.trim();
+                    queryType = 'censys';
+                }
+            } else if (currentTab === 'Templates' || currentTab === 'Saved Queries') {
+                 // If a template was just loaded, its query is in manual field, or in preview
+                const googleQuery = document.getElementById('manualGoogleQuery').value.trim();
+                const shodanQuery = document.getElementById('manualShodanQuery').value.trim();
+                const censysQuery = document.getElementById('manualCensysQuery').value.trim();
+
+                if (googleQuery) {
+                    queryToSave = googleQuery;
+                    queryType = 'google';
+                } else if (shodanQuery) {
+                    queryToSave = shodanQuery;
+                    queryType = 'shodan';
+                } else if (censysQuery) {
+                    queryToSave = censysQuery;
+                    queryType = 'censys';
+                }
+            }
+
+            if (!queryToSave || queryToSave === 'Build a query or select a template to see the preview here...' || queryToSave === 'Select a template to preview its query...') {
+                showAlert('Please build or enter a query first to save.', 'warning');
+                return;
+            }
+            
+            const queryName = prompt('Enter a descriptive name for this query:', queryToSave.substring(0, 30)); // Pre-fill with a snippet
+            if (queryName) {
+                const category = prompt('Enter a category for this query (e.g., "Web App", "Cloud", "My Projects"). Leave blank for "Uncategorized".', 'Uncategorized');
+                
+                const savedQuery = {
+                    id: Date.now(),
+                    name: queryName,
+                    query: queryToSave,
+                    type: queryType, // Store the type of query (google, shodan, censys)
+                    category: category ? category.trim() : 'Uncategorized',
+                    timestamp: new Date().toISOString()
+                };
+                
+                savedQueries.unshift(savedQuery);
+                
+                // Keep only the last 50 queries
+                if (savedQueries.length > 50) {
+                    savedQueries = savedQueries.slice(0, 50);
+                }
+                
+                localStorage.setItem('dorkQueries', JSON.stringify(savedQueries)); // Save to localStorage
+
+                if (!savedCategories.includes(savedQuery.category)) {
+                    savedCategories.push(savedQuery.category);
+                    localStorage.setItem('dorkCategories', JSON.stringify(savedCategories));
+                }
+                
+                loadSavedCategories();
+                loadSavedQueries(savedQuery.category); // Load saved queries, filtering by the newly added category
+                
+                showAlert('Query saved successfully!', 'success');
+            }
+        }
+
+        function loadSavedCategories() {
+            const categoryList = document.getElementById('savedQueryCategoryList');
+            categoryList.innerHTML = '';
+
+            // Add "All" category
+            const allCategoryItem = document.createElement('li');
+            const allCategoryButton = document.createElement('button');
+            allCategoryButton.textContent = 'All Categories';
+            allCategoryButton.className = 'active'; // Make "All" active by default
+            allCategoryButton.onclick = () => loadSavedQueries('All');
+            allCategoryItem.appendChild(allCategoryButton);
+            categoryList.appendChild(allCategoryItem);
+
+            savedCategories.sort().forEach(category => {
+                const categoryItem = document.createElement('li');
+                const categoryButton = document.createElement('button');
+                categoryButton.textContent = category;
+                categoryButton.onclick = () => loadSavedQueries(category);
+                categoryItem.appendChild(categoryButton);
+                categoryList.appendChild(categoryItem);
+            });
+        }
+
+        function addSavedCategory() {
+            const newCategory = prompt('Enter the name of the new category:');
+            if (newCategory && newCategory.trim() !== '') {
+                const trimmedCategory = newCategory.trim();
+                if (!savedCategories.includes(trimmedCategory)) {
+                    savedCategories.push(trimmedCategory);
+                    localStorage.setItem('dorkCategories', JSON.stringify(savedCategories));
+                    loadSavedCategories();
+                    showAlert(`Category "${trimmedCategory}" added.`, 'info');
+                } else {
+                    showAlert('Category already exists.', 'warning');
+                }
+            }
+        }
+
+        function loadSavedQueries(category = 'All') {
+            const container = document.getElementById('allSavedQueries');
+            container.innerHTML = '';
+            
+            // Deactivate all category buttons
+            document.querySelectorAll('#savedQueryCategoryList button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Activate the clicked category button
+            const activeCategoryButton = document.querySelector(`#savedQueryCategoryList button[onclick="loadSavedQueries('${category}')"]`);
+            if (activeCategoryButton) {
+                activeCategoryButton.classList.add('active');
+            }
+
+            const searchTerm = document.getElementById('savedQuerySearchInput').value.toLowerCase();
+
+            const filteredSavedQueries = savedQueries.filter(q => {
+                const matchesCategory = category === 'All' || q.category === category;
+                const matchesSearch = q.name.toLowerCase().includes(searchTerm) || q.query.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredSavedQueries.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">No saved queries found for this category or search term.</p>';
+                return;
+            }
+            
+            filteredSavedQueries.forEach(saved => {
+                const item = document.createElement('div');
+                item.className = 'saved-item';
+                
+                // Determine icon based on query type
+                let iconHtml = '';
+                if (saved.type === 'shodan') {
+                    iconHtml = '<img src="https://www.shodan.io/favicon.ico" alt="Shodan Icon" style="width:16px; height:16px; margin-right:5px; vertical-align:middle;">';
+                } else if (saved.type === 'censys') {
+                    iconHtml = '<img src="https://censys.io/static/images/favicon-32x32.png" alt="Censys Icon" style="width:16px; height:16px; margin-right:5px; vertical-align:middle;">';
+                } else {
+                    iconHtml = '<i class="fab fa-google" style="margin-right:5px; vertical-align:middle;"></i>';
+                }
+
+                item.innerHTML = `
+                    <div>
+                        <div style="font-size: 0.9rem; margin-bottom: 4px;">${iconHtml}<strong>${saved.name}</strong> <span style="color: var(--text-muted); font-size: 0.8em;">(${saved.category})</span></div>
+                        <div class="saved-query" title="${saved.query}">${saved.query.substring(0, 70)}${saved.query.length > 70 ? '...' : ''}</div>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary btn-small" onclick="loadSavedQueryToField('${saved.id}')" title="Load to query field">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="copySpecificQuery('${saved.query}')" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="executeSavedQuery('${saved.id}')" title="Execute Search">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="deleteSavedQuery('${saved.id}')" style="margin-left: 5px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function searchSavedQueries() {
+            const currentActiveCategoryButton = document.querySelector('#savedQueryCategoryList button.active');
+            const currentCategory = currentActiveCategoryButton ? currentActiveCategoryButton.textContent.trim().replace('All Categories', 'All') : 'All';
+            loadSavedQueries(currentCategory);
+        }
+
+        function loadSavedQueryToField(queryId) {
+            const savedQuery = savedQueries.find(q => q.id == queryId);
+            if (savedQuery) {
+                // Clear all manual fields
+                document.getElementById('manualGoogleQuery').value = '';
+                document.getElementById('manualShodanQuery').value = '';
+                document.getElementById('manualCensysQuery').value = '';
+
+                // Populate the correct manual field based on type
+                if (savedQuery.type === 'google') {
+                    document.getElementById('manualGoogleQuery').value = savedQuery.query;
+                    currentGoogleQuery = savedQuery.query;
+                    currentShodanQuery = ''; // Clear other current queries
+                    currentCensysQuery = '';
+                    updateQueryPreview('google');
+                } else if (savedQuery.type === 'shodan') {
+                    document.getElementById('manualShodanQuery').value = savedQuery.query;
+                    currentShodanQuery = savedQuery.query;
+                    currentGoogleQuery = ''; // Clear other current queries
+                    currentCensysQuery = '';
+                } else if (savedQuery.type === 'censys') {
+                    document.getElementById('manualCensysQuery').value = savedQuery.query;
+                    currentCensysQuery = savedQuery.query;
+                    currentGoogleQuery = ''; // Clear other current queries
+                    currentShodanQuery = '';
+                }
+                switchTab('manual'); // Switch to manual query tab
+                showAlert('Saved query loaded to manual input.', 'info');
+            }
+        }
+
+        function executeSavedQuery(queryId) {
+            const savedQuery = savedQueries.find(q => q.id == queryId);
+            if (savedQuery) {
+                // Update global query variables first
+                currentGoogleQuery = savedQuery.type === 'google' ? savedQuery.query : '';
+                currentShodanQuery = savedQuery.type === 'shodan' ? savedQuery.query : '';
+                currentCensysQuery = savedQuery.type === 'censys' ? savedQuery.query : '';
+
+                // Then call buildQueryAndRun with the correct type
+                buildQueryAndRun(savedQuery.type);
+            }
+        }
+
+        function deleteSavedQuery(queryId) {
+            if (confirm('Are you sure you want to delete this query?')) {
+                savedQueries = savedQueries.filter(q => q.id != queryId);
+                localStorage.setItem('dorkQueries', JSON.stringify(savedQueries));
+                loadSavedQueries(document.querySelector('#savedQueryCategoryList button.active').textContent.trim().replace('All Categories', 'All')); // Reload current category
+                showAlert('Query deleted.', 'success');
+            }
+        }
+
+        // Function to convert Google query to Shodan/Censys (Conceptual)
+        function convertQuery(targetEngine) {
+            let googleQuery = document.getElementById('manualGoogleQuery').value.trim();
+            if (!googleQuery) {
+                showAlert('Please enter a Google Dork query first to convert.', 'warning');
+                return;
+            }
+
+            let convertedQuery = '';
+            // Basic heuristic conversion logic (Highly simplified and often inaccurate without complex parsing)
+            const siteMatch = googleQuery.match(/site:([^\s]+)/i);
+            const inurlMatch = googleQuery.match(/inurl:([^\s]+)/i);
+            const intitleMatch = googleQuery.match(/intitle:([^\s]+)/i);
+            const filetypeMatch = googleQuery.match(/filetype:([^\s]+)/i);
+            const keywords = googleQuery.replace(/site:[^\s]+/ig, '')
+                                        .replace(/inurl:[^\s]+/ig, '')
+                                        .replace(/intitle:[^\s]+/ig, '')
+                                        .replace(/filetype:[^\s]+/ig, '')
+                                        .replace(/"/g, '')
+                                        .replace(/-/g, '')
+                                        .trim();
+
+            let parts = [];
+
+            if (targetEngine === 'shodan') {
+                if (siteMatch && siteMatch[1]) {
+                    const domain = siteMatch[1].replace(/^\*\./, ''); // Remove *. if present
+                    if (domain.includes('.')) {
+                        parts.push(`domain:${domain}`);
+                    } else { // Handle TLDs like .gov, or if it's just a word
+                        parts.push(domain); // Treat as keyword for Shodan
+                    }
+                }
+                if (inurlMatch && inurlMatch[1]) {
+                    parts.push(`http.url:"${inurlMatch[1]}"`);
+                }
+                if (intitleMatch && intitleMatch[1]) {
+                    parts.push(`http.title:"${intitleMatch[1]}"`);
+                }
+                // Filetype is generally not a direct Shodan operator
+                if (keywords) {
+                    parts.push(keywords);
+                }
+                convertedQuery = parts.join(' ').trim();
+                document.getElementById('manualShodanQuery').value = convertedQuery;
+                currentShodanQuery = convertedQuery;
+                showAlert('Google Dork heuristically converted to Shodan query. Review carefully!', 'info');
+
+            } else if (targetEngine === 'censys') {
+                if (siteMatch && siteMatch[1]) {
+                    const domain = siteMatch[1].replace(/^\*\./, '');
+                    parts.push(`parsed.names: "${domain}"`);
+                }
+                if (inurlMatch && inurlMatch[1]) {
+                    parts.push(`services.http.response.request.path: "${inurlMatch[1]}"`);
+                }
+                if (intitleMatch && intitleMatch[1]) {
+                    parts.push(`services.http.response.html_title: "${intitleMatch[1]}"`);
+                }
+                // Filetype is generally not a direct Censys operator
+                if (keywords) {
+                    parts.push(`services.http.response.body: "${keywords}"`); // Search keywords in body
+                }
+                convertedQuery = parts.join(' AND ').trim();
+                document.getElementById('manualCensysQuery').value = convertedQuery;
+                currentCensysQuery = convertedQuery;
+                showAlert('Google Dork heuristically converted to Censys query. Review carefully!', 'info');
+            }
+            switchTab('manual'); // Go to manual tab to show the converted query
+        }
+
+
+        // Advanced query operator insertion
+        function insertOperator(targetFieldId, operator) {
+            const targetField = document.getElementById(targetFieldId);
+            const start = targetField.selectionStart;
+            const end = targetField.selectionEnd;
+            const text = targetField.value;
+            let newText = '';
+            let cursorPosition = start;
+
+            switch(operator) {
+                case 'AND':
+                case 'OR':
+                case 'NOT':
+                    newText = text.substring(0, start) + ` ${operator} ` + text.substring(end, text.length);
+                    cursorPosition = start + operator.length + 2;
+                    break;
+                case '-': // Google NOT
+                    newText = text.substring(0, start) + `-${text.substring(start, end).trim()}` + text.substring(end, text.length);
+                    cursorPosition = start + 1;
+                    break;
+                case '""': // Exact Match
+                    newText = text.substring(0, start) + `"${text.substring(start, end)}"` + text.substring(end, text.length);
+                    cursorPosition = start + 1; // Inside the quotes
+                    break;
+                case '*': // Wildcard
+                    newText = text.substring(0, start) + '*' + text.substring(end, text.length);
+                    cursorPosition = start + 1;
+                    break;
+                case 'AROUND(3)':
+                    newText = text.substring(0, start) + ` AROUND(3) ` + text.substring(end, text.length);
+                    cursorPosition = start + " AROUND(3) ".length;
+                    break;
+                case 'inanchor:':
+                case 'link:':
+                case 'cache:':
+                case 'related:':
+                case 'info:':
+                case 'net:':
+                case 'port:':
+                case 'country:':
+                case 'city:':
+                case 'org:':
+                case 'isp:':
+                case 'os:':
+                case 'before:':
+                case 'after:':
+                case 'asn:':
+                case 'product:':
+                case 'version:':
+                case 'vuln:':
+                case 'http.title:':
+                case 'ssl.cert.subject.cn:':
+                case 'services.port:':
+                case 'services.http.response.status_code:':
+                case 'services.http.response.html_title:':
+                case 'autonomous_system.country_code:':
+                case 'services.software.vendor:':
+                case 'services.software.product:':
+                case 'services.tls.certificates.leaf.subject.common_name:':
+                    newText = text.substring(0, start) + `${operator}` + text.substring(end, text.length);
+                    cursorPosition = start + operator.length;
+                    break;
+                case 'has_ipv6:true':
+                    newText = text.substring(0, start) + `${operator}` + text.substring(end, text.length);
+                    cursorPosition = start + operator.length;
+                    break;
+                default:
+                    newText = text.substring(0, start) + operator + text.substring(end, text.length);
+                    cursorPosition = start + operator.length;
+                    break;
+            }
+
+            targetField.value = newText;
+            targetField.focus();
+            targetField.setSelectionRange(cursorPosition, cursorPosition);
+            
+            if (targetFieldId === 'manualGoogleQuery') {
+                currentGoogleQuery = newText;
+                updateQueryPreview('google');
+            } else if (targetFieldId === 'manualShodanQuery') {
+                currentShodanQuery = newText;
+            } else if (targetFieldId === 'manualCensysQuery') {
+                currentCensysQuery = newText;
+            }
+        }
+
+        // Export functionality
+        function exportQueries() {
+            if (savedQueries.length === 0) {
+                showAlert('No saved queries to export', 'warning');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(savedQueries, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'falcon_recon_queries_export.json';
+            link.click();
+            showAlert('Saved queries exported!', 'success');
+        }
+
+        // Import functionality
+        function importQueries() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const imported = JSON.parse(e.target.result);
+                        if (Array.isArray(imported)) {
+                            // Merge and deduplicate based on query string
+                            const newSavedQueries = [...imported, ...savedQueries].filter((v, i, a) => a.findIndex(t => (t.query === v.query && t.type === v.type)) === i);
+                            savedQueries = newSavedQueries.slice(0, 50); // Keep max 50
+                            localStorage.setItem('dorkQueries', JSON.stringify(savedQueries));
+                            
+                            // Update categories
+                            imported.forEach(q => {
+                                if (q.category && !savedCategories.includes(q.category)) {
+                                    savedCategories.push(q.category);
+                                }
+                            });
+                            localStorage.setItem('dorkCategories', JSON.stringify(savedCategories));
+
+                            loadSavedCategories();
+                            loadSavedQueries('All'); // Reload all queries and categories
+                            showAlert('Queries imported successfully!', 'success');
+                        } else {
+                            showAlert('Invalid file format: Expected a JSON array.', 'error');
+                        }
+                    } catch (error) {
+                        showAlert('Error reading file: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to build query (and run if Google)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                const currentTab = document.querySelector('.tabs .tab.active').id;
+                if (currentTab === 'builder') {
+                    buildQueryAndRun('google'); // Call the function that builds and runs
+                } else if (currentTab === 'manual') {
+                    if (document.getElementById('manualGoogleQuery').value.trim()) {
+                        buildQueryAndRun('google');
+                    } else if (document.getElementById('manualShodanQuery').value.trim()) {
+                        buildQueryAndRun('shodan'); 
+                    } else if (document.getElementById('manualCensysQuery').value.trim()) {
+                        buildQueryAndRun('censys'); 
+                    }
+                }
+            }
+            
+            // Ctrl/Cmd + S to save query
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveQuery();
+            }
+            
+            // Escape to clear
+            if (e.key === 'Escape') {
+                clearForm();
+            }
+        });
+
+        // Responsive menu toggle
+        function toggleMobileMenu() {
+            const menu = document.querySelector('.nav-menu');
+            menu.classList.toggle('mobile-active');
+        }
+
+        // Copy query to clipboard
+        function copyQuery(engineType = 'google') {
+            let queryToCopy = '';
+            if (engineType === 'google') {
+                queryToCopy = document.getElementById('queryPreview').textContent.trim();
+            } else if (engineType === 'shodan') {
+                queryToCopy = document.getElementById('manualShodanQuery').value.trim();
+            } else if (engineType === 'censys') {
+                queryToCopy = document.getElementById('manualCensysQuery').value.trim();
+            }
+
+            if (!queryToCopy || queryToCopy === 'Build a query or select a template to see the preview here...' || queryToCopy === 'Select a template to preview its query...') {
+                showAlert('No query to copy.', 'warning');
+                return;
+            }
+            
+            navigator.clipboard.writeText(queryToCopy).then(() => {
+                showAlert('Query copied to clipboard!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = queryToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('Query copied to clipboard (fallback)!', 'success');
+            });
+        }
+
+        function copySpecificQuery(queryText) {
+             if (!queryText) {
+                showAlert('Cannot copy empty query.', 'warning');
+                return;
+            }
+            navigator.clipboard.writeText(queryText).then(() => {
+                showAlert('Query copied to clipboard!', 'success');
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = queryText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('Query copied to clipboard (fallback)!', 'success');
+            });
+        }
+
+        // Initialize tooltips and help system
+        function initializeHelp() {
+            // Add help tooltips to form inputs
+            document.querySelectorAll('.help-icon').forEach(icon => {
+                // Tooltip text is already set in HTML title attribute
+            });
+        }
+
+        // Custom Alert/Notification System
+        let alertTimeout;
+        function showAlert(message, type = 'info', duration = 3000) {
+            const customAlert = document.getElementById('customAlert');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertIcon = document.getElementById('alertIcon');
+
+            // Clear previous classes
+            customAlert.className = 'alert'; 
+            
+            // Set message and type
+            alertMessage.textContent = message;
+            customAlert.classList.add(type); // Add type class (success, info, warning, error)
+            
+            // Set icon based on type
+            if (type === 'success') {
+                alertIcon.className = 'fas fa-check-circle';
+            } else if (type === 'warning') {
+                alertIcon.className = 'fas fa-exclamation-triangle';
+            } else if (type === 'error') {
+                alertIcon.className = 'fas fa-times-circle';
+            } else { // info
+                alertIcon.className = 'fas fa-info-circle';
+            }
+
+            // Show alert
+            customAlert.classList.add('show');
+
+            // Clear any existing timeout
+            if (alertTimeout) {
+                clearTimeout(alertTimeout);
+            }
+
+            // Hide after duration
+            alertTimeout = setTimeout(() => {
+                customAlert.classList.remove('show');
+            }, duration);
+        }
+
+        function performGlobalSearch() {
+            const globalQuery = document.getElementById('globalSearchBar').value.trim().toLowerCase();
+            const resultsContainer = document.getElementById('globalSearchResultsContent');
+            const resultsSection = document.getElementById('globalSearchResults');
+            resultsContainer.innerHTML = ''; // Clear previous results
+
+            if (!globalQuery) {
+                showAlert('Please enter a query in the global search bar for internal search.', 'warning');
+                resultsSection.classList.remove('active');
+                return;
+            }
+
+            let foundResults = [];
+
+            // Helper function to highlight text
+            const highlightText = (text, query) => {
+                if (!text) return '';
+                const regex = new RegExp(`(${query})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            };
+
+            // 1. Search in "What's New" features
+            document.querySelectorAll('.whats-new .feature-item').forEach(item => {
+                const title = item.querySelector('h4').textContent;
+                const description = item.querySelector('p').textContent;
+                if (title.toLowerCase().includes(globalQuery) || description.toLowerCase().includes(globalQuery)) {
+                    foundResults.push({
+                        type: 'What\'s New Feature',
+                        title: title,
+                        description: description,
+                        elementId: item.id // To potentially scroll to it
+                    });
+                }
+            });
+
+            // 2. Search in "Info Sections" (Documentation, Best Practices, Legal, About)
+            document.querySelectorAll('.info-card').forEach(card => {
+                const headerTitle = card.querySelector('.info-card-header h3').textContent;
+                const contentText = card.querySelector('.info-card-content').textContent;
+                if (headerTitle.toLowerCase().includes(globalQuery) || contentText.toLowerCase().includes(globalQuery)) {
+                     foundResults.push({
+                        type: 'Info Section',
+                        title: headerTitle,
+                        description: contentText.substring(0, 150) + '...', // Truncate for display
+                        elementId: card.querySelector('.info-card-content').id
+                    });
+                }
+            });
+
+            // 3. Search in Templates
+            Object.values(templates).forEach(template => {
+                if (template.title.toLowerCase().includes(globalQuery) || 
+                    template.description.toLowerCase().includes(globalQuery) ||
+                    template.queries.some(q => q.toLowerCase().includes(globalQuery))) {
+                    foundResults.push({
+                        type: 'Template',
+                        title: template.title,
+                        description: template.description,
+                        query: template.queries[0]
+                    });
+                }
+            });
+
+            // 4. Search in Saved Queries (name and query)
+            savedQueries.forEach(saved => {
+                if (saved.name.toLowerCase().includes(globalQuery) || saved.query.toLowerCase().includes(globalQuery)) {
+                    foundResults.push({
+                        type: 'Saved Query',
+                        title: saved.name,
+                        description: saved.query
+                    });
+                }
+            });
+
+            if (foundResults.length > 0) {
+                resultsSection.classList.add('active'); // Show results section
+                foundResults.forEach(result => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    let descriptionText = result.description;
+                    if (result.query) {
+                        descriptionText += ` (Query: ${result.query})`;
+                    }
+                    
+                    const highlightedTitle = highlightText(result.title, globalQuery);
+                    const highlightedDescription = highlightText(descriptionText, globalQuery);
+
+
+                    resultItem.innerHTML = `
+                        <h4><i class="fas fa-tag"></i> ${result.type}: ${highlightedTitle}</h4>
+                        <p>${highlightedDescription}</p>
+                    `;
+                    // Optional: Add a click handler to scroll to the element if it has an ID
+                    if (result.elementId) {
+                        resultItem.style.cursor = 'pointer';
+                        resultItem.onclick = () => {
+                            const targetElement = document.getElementById(result.elementId);
+                            if (targetElement) {
+                                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                // Optionally expand the info card if it's collapsed
+                                if (targetElement.classList.contains('info-card-content') && !targetElement.classList.contains('expanded')) {
+                                    toggleInfoSection(result.elementId);
+                                }
+                            }
+                        };
+                    }
+                    resultsContainer.appendChild(resultItem);
+                });
+                showAlert(`Found ${foundResults.length} relevant results within Dork Assistant.`, 'success');
+            } else {
+                resultsSection.classList.remove('active');
+                showAlert('No internal results found. Try a more general term.', 'info');
+            }
+        }
+
+        function clearGlobalSearchResults() {
+            document.getElementById('globalSearchResultsContent').innerHTML = '';
+            document.getElementById('globalSearchResults').classList.remove('active');
+            document.getElementById('globalSearchBar').value = '';
+            showAlert('Local search results cleared.', 'info');
+        }
+
+        function toggleInfoSection(contentId) {
+            const content = document.getElementById(contentId);
+            const header = content.previousElementSibling; 
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                header.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                header.classList.add('expanded');
+            }
+        }
+
+        function toggleAllInfoSections(expand) {
+            document.querySelectorAll('.info-card-content').forEach(content => {
+                const header = content.previousElementSibling;
+                if (expand) {
+                    content.classList.add('expanded');
+                    header.classList.add('expanded');
+                } else {
+                    content.classList.remove('expanded');
+                    header.classList.remove('expanded');
+                }
+            });
+            showAlert(expand ? 'All info sections expanded.' : 'All info sections collapsed.', 'info');
+        }
+    </script>
+    <script>
+        // Theme Toggle (re-added to ensure it's complete)
+        // This function was already defined in the main script block,
+        // so this re-definition might cause issues or be redundant.
+        // It's better to ensure only one definition exists.
+        // I will comment this out assuming the first one is the correct one.
+        /*
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('theme-icon');
+            if (document.body.classList.contains('light-mode')) {
+                icon.className = 'fas fa-moon'; 
+            } else {
+                icon.className = 'fas fa-sun'; 
+            }
+            const savedTheme = localStorage.getItem('dorkmaster_theme') || 'dark';
+            updateThemeIcon(savedTheme);
+        }
+        */
+
+        // Floating Particles Effect
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            // Randomize starting position more effectively
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%'; // Start anywhere in the footer
+            particle.style.animationDelay = Math.random() * 5 + 's'; // Longer delay range
+            particle.style.animationDuration = (Math.random() * 8 + 12) + 's'; // Longer duration for slower float
+            
+            // Random colors for particles, leaning towards blue/accent
+            const colors = ['var(--accent)', 'var(--glow-color)', 'rgba(0,191,255,0.8)', 'var(--success)'];
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            
+            document.getElementById('particles').appendChild(particle);
+            
+            // Remove particles after their animation ends
+            setTimeout(() => {
+                particle.remove();
+            }, parseFloat(particle.style.animationDuration) * 1000); // Convert seconds to milliseconds
+        }
+
+        // Create particles periodically, but perhaps fewer for subtlety
+        // Reduced frequency to avoid too many particles
+        let particleInterval = setInterval(createParticle, 500); 
+
+        // Clear interval if user is on a low-performance device or prefers less animation
+        // (This part would require more advanced detection, but good to keep in mind)
+        // For now, let's keep it simple.
+
+        // Typing effect for description
+        function typeWriter(element, text, speed = 50) { // Slightly faster typing speed
+            let i = 0;
+            const cursor = element.querySelector('.typing-cursor');
+            const textContent = text;
+            element.innerHTML = ''; // Clear existing text
+            
+            function type() {
+                if (i < textContent.length) {
+                    element.innerHTML = textContent.substring(0, i + 1) + '<span class="typing-cursor">|</span>'; // Update content with cursor
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.innerHTML = textContent + '<span class="typing-cursor">|</span>'; // Ensure cursor remains at the end
+                    // Optional: remove cursor after a few blinks
+                    setTimeout(() => {
+                        if (element.querySelector('.typing-cursor')) {
+                            element.querySelector('.typing-cursor').remove();
+                        }
+                    }, 3000); // Cursor blinks for 3 seconds then disappears
+                }
+            }
+            type();
+        }
+
+        // Initialize typing effect on load
+        window.addEventListener('load', function() {
+            const descriptionElement = document.querySelector('.footer-description');
+            const originalTextContent = 'Elite OSINT and Asset Discovery platform for advanced cyber defense teams.';
+            // Check if the original text exists before attempting to re-type
+            if (descriptionElement && descriptionElement.textContent.includes('Elite OSINT and Asset Discovery platform')) {
+                 setTimeout(() => {
+                    typeWriter(descriptionElement, originalTextContent, 50);
+                }, 1000); // Start typing after 1 second
+            }
+           
+        });
+
+        // Add hover sound effect simulation (visual feedback instead of actual sound)
+        document.querySelectorAll('.footer-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                // Already handled by CSS, but can add JS effects here if needed
+                // For example, a very quick transform or a more specific shadow change
+                this.style.transition = 'all 0.1s ease-out'; // Make this feedback faster
+                this.style.transform = 'translateY(-4px)';
+                this.style.boxShadow = '0 10px 30px rgba(0,191,255,0.7)'; // Stronger immediate feedback
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transition = 'all 0.3s ease-in'; // Smooth return
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 5px 15px var(--shadow-primary)';
+            });
+        });
+
+        // Security badge click effect
+        document.querySelector('.security-badge').addEventListener('click', function() {
+            // Re-trigger CSS animation
+            this.style.animation = 'none'; // Reset animation
+            void this.offsetWidth; // Trigger reflow
+            this.style.animation = 'securityPulse 3.5s infinite ease-in-out'; // Restart
+        });
+
+        // Add matrix-style random character flicker to title
+        function addMatrixEffect() {
+            const title = document.querySelector('.footer-title');
+            if (!title) return; // Ensure element exists
+            const originalText = title.textContent;
+            const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'; // More characters
+            
+            let isGlitching = false;
+            let glitchIntervalId;
+            
+            title.addEventListener('mouseenter', function() {
+                if (isGlitching) return;
+                isGlitching = true;
+                
+                const glitchDuration = 800; // Longer glitch duration
+                const glitchSpeed = 30; // Faster character change speed
+                let glitchStartTime = Date.now();
+                
+                glitchIntervalId = setInterval(() => {
+                    if (Date.now() - glitchStartTime > glitchDuration) {
+                        clearInterval(glitchIntervalId);
+                        title.textContent = originalText;
+                        isGlitching = false;
+                        return;
+                    }
+
+                    let glitchedText = '';
+                    for (let i = 0; i < originalText.length; i++) {
+                        // Only glitch a percentage of characters
+                        if (Math.random() < 0.25) { // Higher chance of glitching
+                            glitchedText += chars[Math.floor(Math.random() * chars.length)];
+                        } else {
+                            glitchedText += originalText[i];
+                        }
+                    }
+                    title.textContent = glitchedText;
+                }, glitchSpeed);
+            });
+
+            // Add mouseleave to stop glitching immediately if desired,
+            // though the current implementation naturally stops after glitchDuration
+            title.addEventListener('mouseleave', function() {
+                if (isGlitching) {
+                    clearInterval(glitchIntervalId);
+                    title.textContent = originalText;
+                    isGlitching = false;
+                }
+            });
+        }
+
+        // Initialize matrix effect
+        addMatrixEffect();
+    </script>
+</body>
+</html>
