@@ -3,10 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SearchSploit X: Multi-Engine Recon Toolkit</title>
-    <meta name="description" content="SearchSploit X: Multi-Engine Recon Toolkit - Advanced search queries for security researchers.">
-    <meta name="theme-color" content="#4a7dff">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234a7dff' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9v-2h2v2zm0-4H9V7h2v6zm4 0h-2V7h2v6z'/%3E%3C/svg%3E">
+    <title>SearchSploit X: Multi-Engine Recon Toolkit - OSINT & Security Dorking</title>
+    <meta name="description" content="SearchSploit X: Your ultimate multi-engine recon toolkit for advanced OSINT, security research, and dorking across Google, Shodan, Censys, Yandex, and DuckDuckGo. Discover vulnerabilities, leaks, and hidden assets efficiently.">
+    <meta name="keywords" content="OSINT, dorking, security research, cybersecurity, Google dorks, Shodan, Censys, Yandex, DuckDuckGo, recon toolkit, vulnerability discovery, information gathering, web reconnaissance, ethical hacking, digital forensics">
+    <meta name="author" content="SearchSploit X Team">
+    <meta name="publisher" content="SearchSploit X">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourdomain.com/searchsploit-x"> <!-- Replace with your actual URL -->
+
+    <!-- Open Graph / Facebook / LinkedIn / General Social Sharing -->
+    <meta property="og:title" content="SearchSploit X: Multi-Engine OSINT & Security Dorking Toolkit">
+    <meta property="og:description" content="An advanced toolkit for security researchers and OSINT professionals. Build, convert, and discover dorks across multiple search engines.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/searchsploit-x"> <!-- Replace with your actual URL -->
+    <meta property="og:image" content="https://yourdomain.com/assets/searchsploit-og-image.jpg"> <!-- Replace with a compelling image URL -->
+    <meta property="og:image:alt" content="SearchSploit X logo on a dark, cyber background">
+    <meta property="og:site_name" content="SearchSploit X">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@yourtwitterhandle"> <!-- Replace with your Twitter handle -->
+    <meta name="twitter:creator" content="@yourtwitterhandle">
+    <meta name="twitter:title" content="SearchSploit X: The Ultimate OSINT Dorking Toolkit">
+    <meta name="twitter:description" content="Streamline your security research and OSINT with SearchSploit X. Advanced query building, template library, and cross-engine compatibility.">
+    <meta name="twitter:image" content="https://yourdomain.com/assets/searchsploit-twitter-card.jpg"> <!-- Replace with Twitter-optimized image URL -->
+    <meta name="twitter:image:alt" content="SearchSploit X application screenshot">
+
+    <meta name="theme-color" content="#1A1A2E"> <!-- Updated theme color to match dark mode -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2300F0FF' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9v-2h2v2zm0-4H9V7h2v6zm4 0h-2V7h2v6z'/%3E%3C/svg%3E"> <!-- Updated favicon color -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* --- CSS Variables for Theming --- */
@@ -1670,7 +1695,7 @@
             </div>
             <div class="user-profile-dropdown">
                 <button id="user-profile-button" class="user-avatar" aria-label="User Profile">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQ2ODRkNSIgZD0iTTEyIDRjMi4yMSAwIDQgMS43OSA0IDRTMTQuMjEgMTIgMTIgMTJzLTQgMS43OS00IDRTOS43OSAxNiAxMiAxNiYjMTA7YzIuMDkgMCAzLjg1LTEuNTcgMy45OC0zLjY2QzE2Ljg3IDEyLjQ2IDE4LjA0IDEyIDExLjYzIDEyJiMxMDtMNiAxMnYxMmMwIC41NS0uNDUgMS0xIDFTNCgyMi41NSAzIDIyVjljMCAtLjU1LjQ1LTEgMS0xczEgLjQ1IDExIDAuNjMgMy4yOC41IDMuOTggMi4zNEMxOS44NSAxNC40MyAyMiAxNi4xOSAyMiAxNi4xOS43NyAyMCAyMiAyMi42MyAyMiAyMi43MSAyMy4xNiAyNCAtMSAyNC0yIDI0em0wLThjLjU1IDAgMS0uNDUgMS0xcy0uNDUtMS0xLTFzLTEgLjQ1LTEgMSAuNDUgMSAx IDF6Ii8+PC9zdmc+" alt="User Avatar">
+                    <img src="data:image/svg+xml;base64,PHN2ZSB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQ2ODRkNSIgZD0iTTEyIDRjMi4yMSAwIDQgMS43OSA0IDRTMTQuMjEgMTIgMTIgMTJzLTQgMS43OS00IDRTOS43OSAxNiAxMiAxNiYjMTA7YzIuMDkgMCAzLjg1LTEuNTcgMy45OC0zLjY2QzE2Ljg3IDEyLjQ2IDE4LjA0IDEyIDExLjYzIDEyJiMxMDtMNiAxMnYxMmMwIC41NS0uNDUgMS0xIDFTNCgyMi41NSAzIDIyVjljMCAtLjU1LjQ1LTEgMS0xczEgLjQ1IDExIDAuNjMgMy4yOC41IDMuOTggMi4zNEMxOS44NSAxNC40MyAyMiAxNi4xOSAyMiAxNi4xOS43NyAyMCAyMiAyMi42MyAyMiAyMi43MSAyMy4xNiAyNCAtMSAyNC0yIDI0em0wLThjLjU1IDAgMS0uNDUgMS0xcy0uNDUtMS0xLTFzLTEgLjQ1LTEgMSAuNDUgMSAxIDF6Ii8+PC9zdmc+" alt="User Avatar">
                 </button>
                 <div class="dropdown-content" id="user-profile-content">
                     <a href="#" data-nav-target="settings">API Keys & Settings</a>
